@@ -1,11 +1,16 @@
 use crate::character_plugin::CharacterPlugin;
+use crate::growth_plugin::PlanGrowth;
 use crate::name_plugin::NamePlugin;
 use crate::world_gen_plugin::WorldGenPlugin;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppExt};
 use bevy_pancam::{PanCam, PanCamPlugin};
 
+#[allow(unused)]
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
+
 mod character_plugin;
+mod growth_plugin;
 mod name_plugin;
 mod world_gen_plugin;
 
@@ -22,27 +27,32 @@ enum AppState {
 struct MyAssets {
     #[asset(path = "terrain/ugly_grass.png")]
     ugly_grass: Handle<Image>,
+    #[asset(path = "terrain/ugly_grass2.png")]
+    ugly_grass2: Handle<Image>,
+    #[asset(path = "terrain/ugly_grass3.png")]
+    ugly_grass3: Handle<Image>,
+    #[asset(path = "terrain/ugly_grass4.png")]
+    ugly_grass4: Handle<Image>,
+
+    #[asset(path = "terrain/ugly_mud.png")]
+    ugly_mud: Handle<Image>,
+    #[asset(path = "terrain/ugly_mud2.png")]
+    ugly_mud2: Handle<Image>,
+    #[asset(path = "terrain/ugly_mud3.png")]
+    ugly_mud3: Handle<Image>,
+    #[asset(path = "terrain/ugly_mud4.png")]
+    ugly_mud4: Handle<Image>,
+
     #[asset(path = "terrain/ugly_flower.png")]
     ugly_flower: Handle<Image>,
+
+    #[asset(path = "characters/character.png")]
+    character: Handle<Image>,
 }
 
 fn main() {
     App::new()
-        /*.add_system_set(
-            SystemSet::on_update(AppState::MainMenu)
-                .with_system(handle_ui_buttons)
-        )
-        // setup when entering the state
-        .add_system_set(
-            SystemSet::on_enter(AppState::MainMenu)
-                .with_system(setup_menu)
-        )
-        // cleanup when exiting the state
-        .add_system_set(
-            SystemSet::on_exit(AppState::MainMenu)
-                .with_system(close_menu)
-        )*/
-        .add_state::<crate::AppState>()
+        .add_state::<AppState>()
         .add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame))
         .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
         .add_plugins((
@@ -50,7 +60,9 @@ fn main() {
             CharacterPlugin,
             NamePlugin,
             WorldGenPlugin,
+            PlanGrowth,
             PanCamPlugin::default(),
+            //WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, setup)
         .run();
