@@ -1,6 +1,6 @@
 use bevy::log::LogPlugin;
 use bevy::prelude::*;
-use bevy::utils::tracing::{trace};
+use bevy::utils::tracing::trace;
 use big_brain::prelude::*;
 
 pub struct ThirstPlugin;
@@ -160,8 +160,7 @@ pub fn init_entities(mut cmd: Commands) {
 impl Plugin for ThirstPlugin {
     fn build(&self, app: &mut App) {
         // Once all that's done, we just add our systems and off we go!
-        app
-            .add_plugins(BigBrainPlugin::new(PreUpdate))
+        app.add_plugins(BigBrainPlugin::new(PreUpdate))
             //.add_systems(Startup, init_entities)
             .add_systems(Update, thirst_system)
             // Big Brain has specific sets for Scorers and Actions. If

@@ -1,9 +1,9 @@
+use crate::character_plugin::Character;
+use crate::AppState;
 use bevy::app::App;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
-use rand::{Rng, thread_rng};
-use crate::AppState;
-use crate::character_plugin::Character;
+use rand::{thread_rng, Rng};
 
 pub struct RandomMovementPlugin;
 
@@ -23,7 +23,9 @@ fn add_random_movement(
     query: Query<(Entity, With<Character>), Without<RandomMovement>>,
 ) {
     for (entity, _) in &query {
-        commands.entity(entity).insert((RandomMovement, RandomDirection::default()));
+        commands
+            .entity(entity)
+            .insert((RandomMovement, RandomDirection::default()));
     }
 }
 
@@ -52,9 +54,11 @@ fn update_random_dir(
 
 impl Plugin for RandomMovementPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .insert_resource(ChangeDirTimer(Timer::from_seconds(2.0, Repeating)))
-            .add_systems(Update, add_random_movement.run_if(in_state(AppState::InGame)))
+        app.insert_resource(ChangeDirTimer(Timer::from_seconds(2.0, Repeating)))
+            .add_systems(
+                Update,
+                add_random_movement.run_if(in_state(AppState::InGame)),
+            )
             .add_systems(Update, move_randomly.run_if(in_state(AppState::InGame)))
             .add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
     }

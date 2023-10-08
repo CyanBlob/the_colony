@@ -14,9 +14,9 @@ use crate::thirst_thinker::ThirstPlugin;
 mod character_plugin;
 mod growth_plugin;
 mod name_plugin;
-mod world_gen_plugin;
 mod random_movement_plugin;
 mod thirst_thinker;
+mod world_gen_plugin;
 
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
@@ -68,8 +68,8 @@ fn main() {
             PanCamPlugin::default(),
             RandomMovementPlugin,
             bevy_screen_diags::ScreenDiagsTextPlugin, // TODO: debug only
-            //ThirstPlugin,
-            //WorldInspectorPlugin::new(),
+                                                      //ThirstPlugin,
+                                                      //WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, setup)
         .run();
