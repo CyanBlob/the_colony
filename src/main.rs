@@ -1,5 +1,5 @@
 use crate::character_plugin::CharacterPlugin;
-use crate::growth_plugin::PlanGrowth;
+use crate::growth_plugin::PlanGrowthPlugin;
 use crate::name_plugin::NamePlugin;
 use crate::world_gen_plugin::WorldGenPlugin;
 use bevy::prelude::*;
@@ -7,12 +7,16 @@ use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppE
 use bevy_pancam::{PanCam, PanCamPlugin};
 
 #[allow(unused)]
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+//use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use crate::random_movement_plugin::RandomMovementPlugin;
+use crate::thirst_thinker::ThirstPlugin;
 
 mod character_plugin;
 mod growth_plugin;
 mod name_plugin;
 mod world_gen_plugin;
+mod random_movement_plugin;
+mod thirst_thinker;
 
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
@@ -60,8 +64,11 @@ fn main() {
             CharacterPlugin,
             NamePlugin,
             WorldGenPlugin,
-            PlanGrowth,
+            PlanGrowthPlugin,
             PanCamPlugin::default(),
+            RandomMovementPlugin,
+            bevy_screen_diags::ScreenDiagsTextPlugin, // TODO: debug only
+            //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, setup)

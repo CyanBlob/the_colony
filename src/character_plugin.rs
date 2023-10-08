@@ -2,17 +2,12 @@ use crate::name_plugin::{Name, NeedsName};
 use crate::{AppState, MyAssets};
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
+use big_brain::prelude::{FirstToScore, Thinker};
 use rand::{Rng, thread_rng};
+use crate::thirst_thinker::{Drink, Thirst, Thirsty};
 
 #[derive(Component)]
 pub struct Character;
-
-#[derive(Component, Default)]
-#[allow(unused)]
-pub struct EntityTransform {
-    position: Vec2,
-    rotation: f32,
-}
 
 #[derive(Resource)]
 struct TickTimer(Timer);
@@ -20,8 +15,8 @@ struct TickTimer(Timer);
 #[derive(Bundle)]
 struct PlayerBundle {
     character: Character,
-    transform: EntityTransform,
     sprite: SpriteBundle,
+    thirst: Thirst,
 }
 
 pub struct CharacterPlugin;
@@ -29,40 +24,30 @@ pub struct CharacterPlugin;
 fn add_people(mut commands: Commands, assets: Res<MyAssets>) {
     let mut rand = thread_rng();
 
-    for _ in 0..4 {
+    for _ in 0..1 {
         commands.spawn((PlayerBundle {
-            transform: Default::default(),
             sprite: SpriteBundle {
                 texture: assets.character.clone(),
-                transform: Transform::from_xyz(rand.gen_range(-320.0..320.0), rand.gen_range(-320.0..320.0), 100.0),
+                transform: Transform::from_xyz(rand.gen_range(-1000.0..1000.0), rand.gen_range(-640.0..640.0), 100.0),
                 ..default()
             },
             character: Character,
-        }, NeedsName));
+            thirst: Thirst { thirst: rand.gen_range(75.0..76.0), per_second: rand.gen_range(1.5..2.5) },
+        },
+                        Thinker::build()
+                            .picker(FirstToScore { threshold: 0.8 })
+                            .when(Thirsty, Drink { until: 70.0, per_second: 5.0 })
+                        , NeedsName));
     }
-
-
-
-    /*commands.spawn((Character, EntityTransform::default(), NeedsName));
-    commands.spawn((Character, EntityTransform::default(), NeedsName));
-    commands.spawn((
-        Character,
-        EntityTransform::default(),
-        Name("Zayna Nieves".to_string()),
-    ));*/
 }
 
 fn tick_pop(
-    time: Res<Time>,
-    mut timer: ResMut<TickTimer>,
-    query: Query<(&mut EntityTransform, &Character, &Name)>,
+    query: Query<(&Character, &Name), Changed<Name>>,
 ) {
     // update our timer with the time elapsed since the last update
     // if that caused the timer to finish, we say hello to everyone
-    if timer.0.tick(time.delta()).just_finished() {
-        for (_, _, name) in &query {
-            println!("Hello: {}!", name.0);
-        }
+    for (_, name) in &query {
+        println!("Hello: {}!", name.0);
     }
 }
 
