@@ -1,6 +1,4 @@
-use bevy::log::LogPlugin;
 use bevy::prelude::*;
-use bevy::utils::tracing::trace;
 use big_brain::prelude::*;
 
 pub struct ThirstPlugin;
@@ -175,71 +173,3 @@ impl Plugin for ThirstPlugin {
             );
     }
 }
-
-/*use bevy::prelude::*;
-use big_brain::prelude::*;
-
-#[derive(Debug, Clone, Component, ScorerBuilder)]
-pub struct Thirsty;
-
-#[derive(Debug, Clone, Component, ActionBuilder)]
-pub struct Drink;
-
-#[derive(Debug, Clone, Component, ActionBuilder)]
-pub struct Thirst {
-    pub thirst: f32,
-    pub thirst_rate: f32,
-}
-
-pub struct ThirstPlugin;
-
-pub fn thirsty_scorer_system(
-    thirsts: Query<&Thirst>,
-    mut query: Query<(&Actor, &mut Score), With<Thirsty>>,
-) {
-    for (Actor(actor), mut score) in query.iter_mut() {
-        if let Ok(thirst) = thirsts.get(*actor) {
-            score.set(thirst.thirst);
-            println!("Set score: {:?}", score);
-        }
-    }
-}
-
-fn drink_action_system(
-    mut thirsts: Query<&mut Thirst>,
-    mut query: Query<(&Actor, &mut ActionState), With<Drink>>,
-) {
-    for (Actor(actor), mut state) in query.iter_mut() {
-        if let Ok(mut thirst) = thirsts.get_mut(*actor) {
-            match *state {
-                ActionState::Requested => {
-                    thirst.thirst += 10.0;
-                    *state = ActionState::Success;
-                    println!("Was thirsty! Now have {} thirst", thirst.thirst);
-                }
-                ActionState::Cancelled => {
-                    *state = ActionState::Failure;
-                    println!("Thirst cancelled?");
-                }
-                _ => {}
-            }
-        }
-    }
-}
-
-fn thirst_system(time: Res<Time>, mut query: Query<&mut Thirst>) {
-    for mut thirster in query.iter_mut() {
-        thirster.thirst += thirster.thirst_rate * time.delta_seconds();
-    }
-}
-
-impl Plugin for ThirstPlugin {
-    fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, thirst_system)
-            .add_systems(PreUpdate, (
-                drink_action_system.in_set(BigBrainSet::Actions),
-                thirsty_scorer_system.in_set(BigBrainSet::Scorers),
-            ));
-    }
-}*/

@@ -4,12 +4,13 @@ use crate::name_plugin::NamePlugin;
 use crate::world_gen_plugin::WorldGenPlugin;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppExt};
+use bevy_mod_scripting::prelude::*;
 use bevy_pancam::{PanCam, PanCamPlugin};
 
 #[allow(unused)]
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::random_movement_plugin::RandomMovementPlugin;
-use crate::thirst_thinker::ThirstPlugin;
+
 
 mod character_plugin;
 mod growth_plugin;
@@ -60,6 +61,7 @@ fn main() {
         .add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame))
         .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
         .add_plugins((
+            ScriptingPlugin,
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             CharacterPlugin,
             NamePlugin,
@@ -72,6 +74,18 @@ fn main() {
                                                       //WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, setup)
+        // pick and register only the hosts you want to use
+        // use any system set AFTER any systems which add/remove/modify script components
+        // in order for your script updates to propagate in a single frame
+        .add_script_host::<LuaScriptHost<()>>(PostUpdate)
+        // the handlers should be ran after any systems which produce script events.
+        // The PostUpdate set is okay only if your API doesn't require the core Bevy systems' commands
+        // to run beforehand.
+        // Note, this setup assumes a single script handler system set with all events having identical
+        // priority of zero (see examples for more complex scenarios)
+        .add_script_handler::<LuaScriptHost<()>, 0, 0>(
+            PostUpdate,
+        )
         .run();
 }
 
