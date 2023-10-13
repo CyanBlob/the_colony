@@ -1,5 +1,4 @@
 use crate::name_plugin::{Name, NeedsName};
-use crate::thirst_thinker::{Drink, Thirst, Thirsty};
 use crate::{AppState, MyAssets};
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
@@ -9,6 +8,11 @@ use rand::{thread_rng, Rng};
 #[derive(Component)]
 pub struct Character;
 
+#[derive(Component)]
+pub struct Thirst {
+
+}
+
 #[derive(Resource)]
 struct TickTimer(Timer);
 
@@ -16,7 +20,7 @@ struct TickTimer(Timer);
 struct PlayerBundle {
     character: Character,
     sprite: SpriteBundle,
-    thirst: Thirst,
+    //thirst: Thirst,
 }
 
 pub struct CharacterPlugin;
@@ -37,20 +41,11 @@ fn add_people(mut commands: Commands, assets: Res<MyAssets>) {
                     ..default()
                 },
                 character: Character,
-                thirst: Thirst {
+                /*thirst: Thirst {
                     thirst: rand.gen_range(75.0..76.0),
                     per_second: rand.gen_range(1.5..2.5),
-                },
+                },*/
             },
-            Thinker::build()
-                .picker(FirstToScore { threshold: 0.8 })
-                .when(
-                    Thirsty,
-                    Drink {
-                        until: 70.0,
-                        per_second: 5.0,
-                    },
-                ),
             NeedsName,
         ));
     }

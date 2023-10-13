@@ -9,13 +9,11 @@ use bevy_pancam::{PanCam, PanCamPlugin};
 #[allow(unused)]
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::random_movement_plugin::RandomMovementPlugin;
-use crate::thirst_thinker::ThirstPlugin;
 
 mod character_plugin;
 mod growth_plugin;
 mod name_plugin;
 mod random_movement_plugin;
-mod thirst_thinker;
 mod world_gen_plugin;
 
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
