@@ -3,18 +3,24 @@ use crate::growth_plugin::PlanGrowthPlugin;
 use crate::name_plugin::NamePlugin;
 use crate::world_gen_plugin::WorldGenPlugin;
 use bevy::prelude::*;
+use bevy::tasks::Task;
 use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppExt};
+use bevy_enum_filter::prelude::AddEnumFilter;
 use bevy_pancam::{PanCam, PanCamPlugin};
+use crate::task_scorer::TaskScoringPlugin;
 
 #[allow(unused)]
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use crate::random_movement_plugin::RandomMovementPlugin;
+use crate::wander_plugin::RandomMovementPlugin;
+use crate::tasks::AllTasks;
 
 mod character_plugin;
 mod growth_plugin;
 mod name_plugin;
-mod random_movement_plugin;
+mod wander_plugin;
 mod world_gen_plugin;
+mod task_scorer;
+mod tasks;
 
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
@@ -57,6 +63,7 @@ fn main() {
         .add_state::<AppState>()
         .add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame))
         .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
+        .add_enum_filter::<AllTasks>()
         .add_plugins((
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             CharacterPlugin,
@@ -65,6 +72,7 @@ fn main() {
             PlanGrowthPlugin,
             PanCamPlugin::default(),
             RandomMovementPlugin,
+            TaskScoringPlugin,
             bevy_screen_diags::ScreenDiagsTextPlugin, // TODO: debug only
                                                       //ThirstPlugin,
                                                       //WorldInspectorPlugin::new(),

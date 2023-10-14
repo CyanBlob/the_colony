@@ -538,6 +538,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_enum_filter"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b5ebe3b0fa7d1a2ab293d92230e6e74cd5b827730a7e8aca85055ba2173980a"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_enum_filter_derive",
+]
+
+[[package]]
+name = "bevy_enum_filter_derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fc101e0eb0d16067e1f1efc4dc1365ed6d8d695e7e17deeb6448e080c74aa17"
+dependencies = [
+ "convert_case 0.6.0",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "bevy_event_priority"
 version = "0.3.0"
 source = "git+https://github.com/cyanblob/bevy_mod_scripting#da3e4bd27f22c2cd4ebad31fc719542564bf661c"
@@ -743,7 +767,7 @@ name = "bevy_mod_scripting_common"
 version = "0.3.0"
 source = "git+https://github.com/cyanblob/bevy_mod_scripting#da3e4bd27f22c2cd4ebad31fc719542564bf661c"
 dependencies = [
- "convert_case",
+ "convert_case 0.5.0",
  "indexmap 1.9.3",
  "paste",
  "proc-macro2",
@@ -771,7 +795,7 @@ version = "0.3.0"
 source = "git+https://github.com/cyanblob/bevy_mod_scripting#da3e4bd27f22c2cd4ebad31fc719542564bf661c"
 dependencies = [
  "bevy_mod_scripting_common",
- "convert_case",
+ "convert_case 0.5.0",
  "indexmap 1.9.3",
  "paste",
  "proc-macro2",
@@ -1162,27 +1186,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "big-brain"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca84fca00ea07a9cd447f219f27d79366aaf02439a0226b0a28a7a9ed083cb9c"
-dependencies = [
- "bevy",
- "big-brain-derive",
-]
-
-[[package]]
-name = "big-brain-derive"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed1182a1a029aeb2aa54b5a06250559fc1f69a50e7008ab66c6f7907973e4592"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "bindgen"
 version = "0.68.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1475,6 +1478,15 @@ name = "convert_case"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fb4a24b1aaf0fd0ce8b45161144d6f42cd91677fd5940fd431183eb023b3a2b8"
+
+[[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
 
 [[package]]
 name = "core-foundation"
@@ -3539,10 +3551,10 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_asset_loader",
+ "bevy_enum_filter",
  "bevy_mod_scripting",
  "bevy_pancam",
  "bevy_screen_diags",
- "big-brain",
  "rand",
 ]
 
@@ -3760,6 +3772,12 @@ checksum = "5c5713f0fc4b5db668a2ac63cdb7bb4469d8c9fed047b1d0292cc7b0ce2ba921"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dd624098567895118886609431a7c3b8f516e41d30e0643f03d94592a147e36"
 
 [[package]]
 name = "unicode-width"
