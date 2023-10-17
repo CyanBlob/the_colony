@@ -16,3 +16,7 @@ bevy_screen_diags = "0.6.0"
 #big-brain = "0.18.0"
 bevy_mod_scripting = {git = "https://github.com/cyanblob/bevy_mod_scripting", features = ["bevy_mod_scripting_lua", "bevy_script_api", "lua", "luajit"]}
 bevy_enum_filter = "0.2.0"
+
+# for converting enums to strings
+strum = "0.25"
+strum_macros = "0.25"

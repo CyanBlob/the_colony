@@ -25,7 +25,7 @@ pub struct CharacterPlugin;
 fn add_people(mut commands: Commands, assets: Res<MyAssets>) {
     let mut rand = thread_rng();
 
-    for _ in 0..100 {
+    for _ in 0..10 {
         commands.spawn((
             PlayerBundle {
                 sprite: SpriteBundle {
@@ -43,7 +43,27 @@ fn add_people(mut commands: Commands, assets: Res<MyAssets>) {
                 target_task: AllTasks::default(),
             },
             NeedsName,
-        ));
+            /*Text2dBundle {
+                transform: Default::default(),
+                text_anchor: Default::default(),
+                text_2d_bounds: Default::default(),
+                global_transform: Default::default(),
+                visibility: Default::default(),
+                computed_visibility: Default::default(),
+                text_layout_info: Default::default(),
+            }*/
+        )).with_children(|parent| {
+            parent.spawn(Text2dBundle {
+                text: Text::from_section("TEST TEXT", TextStyle::default()),
+                text_anchor: Default::default(),
+                text_2d_bounds: Default::default(),
+                transform: Transform::from_xyz(0.0, 20.0, 10.0),
+                global_transform: Default::default(),
+                visibility: Default::default(),
+                computed_visibility: Default::default(),
+                text_layout_info: Default::default(),
+            });
+        });
     }
 }
 

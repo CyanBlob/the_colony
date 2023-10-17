@@ -1,8 +1,10 @@
 use bevy::prelude::Component;
 use bevy_enum_filter::EnumFilter;
 use crate::task_scorer::Task;
+use strum_macros::{EnumString, IntoStaticStr, AsRefStr};
 
-#[derive(EnumFilter, Component, Debug, Clone, Copy)]
+
+#[derive(EnumFilter, Component, Debug, Clone, Copy, EnumString, IntoStaticStr, AsRefStr)]
 pub enum AllTasks {
     Wander,
     Drink,
