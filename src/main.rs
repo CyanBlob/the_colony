@@ -12,7 +12,7 @@ use crate::task_scorer::TaskScoringPlugin;
 #[allow(unused)]
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::wander_plugin::RandomMovementPlugin;
-use crate::tasks::AllTasks;
+use crate::tasks::{AllTasks, BasicTasksPlugin};
 
 mod character_plugin;
 mod growth_plugin;
@@ -73,6 +73,7 @@ fn main() {
             PanCamPlugin::default(),
             RandomMovementPlugin,
             TaskScoringPlugin,
+            BasicTasksPlugin,
             bevy_screen_diags::ScreenDiagsTextPlugin, // TODO: debug only
                                                       //ThirstPlugin,
                                                       //WorldInspectorPlugin::new(),
