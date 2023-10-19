@@ -5,6 +5,7 @@ use crate::world_gen_plugin::WorldGenPlugin;
 use bevy::prelude::*;
 use bevy::tasks::Task;
 use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppExt};
+use bevy_debug_text_overlay::OverlayPlugin;
 use bevy_enum_filter::prelude::AddEnumFilter;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use crate::task_scorer::TaskScoringPlugin;
@@ -75,6 +76,7 @@ fn main() {
             TaskScoringPlugin,
             BasicTasksPlugin,
             bevy_screen_diags::ScreenDiagsTextPlugin, // TODO: debug only
+            OverlayPlugin { font_size: 14.0, ..default() }
                                                       //ThirstPlugin,
                                                       //WorldInspectorPlugin::new(),
         ))

@@ -13,6 +13,7 @@ rand = "0.8.5"
 bevy_pancam = "0.9.0"
 bevy-inspector-egui = "0.19.0"
 bevy_screen_diags = "0.6.0"
+bevy-debug-text-overlay = "6.0.0"
 #big-brain = "0.18.0"
 bevy_mod_scripting = {git = "https://github.com/cyanblob/bevy_mod_scripting", features = ["bevy_mod_scripting_lua", "bevy_script_api", "lua", "luajit"]}
 bevy_enum_filter = "0.2.0"

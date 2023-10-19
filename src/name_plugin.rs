@@ -25,7 +25,6 @@ fn tick_pop(mut commands: Commands, mut query: Query<Entity, With<NeedsName>>) {
             .entity(entity)
             .insert(Name(text_name.to_string()))
             .remove::<NeedsName>();
-        //println!("Assigned name!");
     }
 }
 

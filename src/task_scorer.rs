@@ -1,8 +1,10 @@
 use bevy::prelude::*;
+use bevy_debug_text_overlay::screen_print;
 use bevy_enum_filter::Enum;
 use crate::AppState::InGame;
 use crate::character_plugin::Character;
 use crate::tasks::*;
+use crate::name_plugin::Name;
 
 pub trait Task {
     fn score(&self) -> f32;
@@ -14,8 +16,9 @@ pub struct TaskScoringPlugin;
 pub struct Busy;
 
 fn score_basic_tasks(mut commands: Commands, time: Res<Time>,
-                     mut query: Query<(Entity, &mut AllTasks, &Thirst, &Hunger, &Sleep), (Without<Busy>)>) {
-    for (entity, mut task, thirst, hunger, sleep) in query.iter_mut() {
+                     mut query: Query<(Entity, &Name, &mut AllTasks, &Thirst, &Hunger, &Sleep), (Without<Busy>)>) {
+
+    for (entity, name, mut task, thirst, hunger, sleep) in query.iter_mut() {
         let mut ratings = vec![(AllTasks::Wander, 1.0)];
 
         ratings.push((AllTasks::Eat, hunger.score()));
@@ -32,6 +35,7 @@ fn score_basic_tasks(mut commands: Commands, time: Res<Time>,
                 commands.entity(entity).remove::<Busy>();
             }
             _ => {
+                screen_print!(push, sec: 3.0, "{}: {:?}", &name.0, *task);
                 commands.entity(entity).insert(Busy);
             }
         }
@@ -58,10 +62,10 @@ fn check_task(query: Query<(Entity, With<Character>, &AllTasks)>)
 }
 
 fn render_task_text(
-    p_query: Query<(Entity, &Children, &AllTasks), (With<Character>)>,
+    p_query: Query<(Entity, &Children, &AllTasks, &Name), (With<Character>)>,
     mut c_query: Query<(&mut Text)>,
 ) {
-    for (_, mut children, task) in p_query.iter() {
+    for (_, mut children, task, name) in p_query.iter() {
         // `children` is a collection of Entity IDs
         for &child in children.iter() {
 
@@ -71,7 +75,7 @@ fn render_task_text(
             match text {
                 Ok(mut t) => {
                     t.sections.clear();
-                    t.sections.push(TextSection { value: task.as_ref().to_string(), style: Default::default() });
+                    t.sections.push(TextSection { value: format!("{}\n{}", &name.0, task.as_ref().to_string()), style: Default::default() });
                 }
                 Err(_) => {}
             }
