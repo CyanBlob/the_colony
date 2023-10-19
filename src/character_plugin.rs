@@ -17,6 +17,7 @@ struct PlayerBundle {
     sprite: SpriteBundle,
     thirst: Thirst,
     hunger: Hunger,
+    sleep: Sleep,
     target_task: AllTasks,
 }
 
@@ -40,6 +41,7 @@ fn add_people(mut commands: Commands, assets: Res<MyAssets>) {
                 character: Character,
                 thirst: Thirst::default(),
                 hunger: Hunger::default(),
+                sleep: Sleep::default(),
                 target_task: AllTasks::default(),
             },
             NeedsName,

@@ -1,7 +1,5 @@
-use bevy::ecs::query::QueryEntityError;
 use bevy::prelude::*;
 use bevy_enum_filter::Enum;
-use rand::{Rng, thread_rng};
 use crate::AppState::InGame;
 use crate::character_plugin::Character;
 use crate::tasks::*;
@@ -16,12 +14,13 @@ pub struct TaskScoringPlugin;
 pub struct Busy;
 
 fn score_basic_tasks(mut commands: Commands, time: Res<Time>,
-                     mut query: Query<(Entity, &mut AllTasks, &Thirst, &Hunger), (Without<Busy>)>) {
-    for (entity, mut task, thirst, hunger) in query.iter_mut() {
+                     mut query: Query<(Entity, &mut AllTasks, &Thirst, &Hunger, &Sleep), (Without<Busy>)>) {
+    for (entity, mut task, thirst, hunger, sleep) in query.iter_mut() {
         let mut ratings = vec![(AllTasks::Wander, 1.0)];
 
         ratings.push((AllTasks::Eat, hunger.score()));
         ratings.push((AllTasks::Drink, thirst.score()));
+        ratings.push((AllTasks::Sleep, sleep.score()));
 
         ratings.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
