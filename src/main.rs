@@ -8,6 +8,7 @@ use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppE
 use bevy_debug_text_overlay::OverlayPlugin;
 use bevy_enum_filter::prelude::AddEnumFilter;
 use bevy_pancam::{PanCam, PanCamPlugin};
+use bevy_screen_diags::ScreenDiagsText;
 use crate::task_scorer::TaskScoringPlugin;
 
 #[allow(unused)]
@@ -81,7 +82,18 @@ fn main() {
                                                       //WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, setup)
+        .add_systems(PostStartup, tweak_fps)
         .run();
+}
+
+fn tweak_fps(mut query: Query<(&mut Text, &mut Style), With<ScreenDiagsText>>) {
+    let (mut text, mut style) = query.single_mut();
+    text.sections[0].style.color = Color::GREEN;
+    text.sections[0].style.font_size = 24.0;
+
+    style.position_type = PositionType::Absolute;
+    style.right = Val::Percent(0.0);
+    style.bottom = Val::Percent(0.0);
 }
 
 fn setup(mut commands: Commands) {
