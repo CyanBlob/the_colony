@@ -22,7 +22,7 @@ public partial class Pawn : CharacterBody2D
         entity = WorldManager.world.Create(
             new Position { pos = new Vector2(Position.X, Position.Y) },
             targetPos,
-            new MoveSpeed { speed = 10 },
+            new MoveSpeed { speed = 50 },
             new Velocity { Dx = 10, Dy = 10 },
             this as CharacterBody2D,
             this);
@@ -31,6 +31,7 @@ public partial class Pawn : CharacterBody2D
     public override void _Draw()
     {
         base._Draw();
+        return;
 
         if (path != null && path.Length > 0)
             for (var i = 0; i < path.Length - 1; ++i)

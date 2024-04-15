@@ -21,7 +21,7 @@ WorldManager="*res://WorldManager.cs"
 
 [dotnet]
 
-project/assembly_name="colony_colonists"
+project/assembly_name="the_colony"
 
 [rendering]
 

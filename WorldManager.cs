@@ -3,7 +3,7 @@ using Arch.Core;
 using Arch.System;
 using Godot;
 
-public partial class WorldManager : Node2D
+public partial class WorldManager : Node
 {
     public static World world;
     public static AStar2D aStar = new();
@@ -59,7 +59,7 @@ public partial class WorldManager : Node2D
             tileData.SetCustomData("astarId", getCellId(tile, rect));
 
             var cost = tileData.GetCustomData("MovementCost").As<float>();
-            aStar.AddPoint(getCellId(tile, rect), ToGlobal(tileMap.MapToLocal(tile)), cost);
+            aStar.AddPoint(getCellId(tile, rect), tileMap.MapToLocal(tile), cost);
         }
 
         foreach (var tile in tiles)
