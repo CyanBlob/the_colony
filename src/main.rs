@@ -1,22 +1,21 @@
+use bevy::asset::LoadedFolder;
+use bevy::prelude::*;
+use bevy_asset_loader::prelude::{AssetCollection, LoadingStateAppExt};
+use bevy_debug_text_overlay::OverlayPlugin;
+use bevy_ecs_tilemap::TilemapPlugin;
+use bevy_enum_filter::prelude::*;
+use bevy_pancam::{PanCam, PanCamPlugin};
+use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin};
+
 use crate::character_plugin::CharacterPlugin;
 use crate::growth_plugin::PlanGrowthPlugin;
 use crate::name_plugin::NamePlugin;
-use crate::world_gen_plugin::WorldGenPlugin;
-use bevy::prelude::*;
-use bevy::render::texture::ImageSampler;
-use bevy::tasks::Task;
-use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppExt};
-use bevy_debug_text_overlay::OverlayPlugin;
-use bevy_pancam::{PanCam, PanCamPlugin};
 use crate::task_scorer::TaskScoringPlugin;
-use bevy_enum_filter::prelude::*;
-use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin, PerfUiRoot};
-use iyes_perf_ui::prelude::{PerfUiEntryClock, PerfUiEntryFPS};
-
+use crate::tasks::{AllTasks, BasicTasksPlugin};
 #[allow(unused)]
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::wander_plugin::RandomMovementPlugin;
-use crate::tasks::{AllTasks, BasicTasksPlugin};
+use crate::world_gen_plugin::WorldGenPlugin;
 
 mod character_plugin;
 mod growth_plugin;
@@ -33,6 +32,33 @@ enum AppState {
     MainMenu,
     InGame,
     Paused,
+}
+
+#[derive(Resource, Default)]
+struct TerrainFolder(Handle<LoadedFolder>);
+
+#[derive(Resource, Default)]
+struct CharacterFolder(Handle<LoadedFolder>);
+
+fn load_textures(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // load multiple, individual sprites from a folder
+    commands.insert_resource(CharacterFolder(asset_server.load_folder("characters")));
+    commands.insert_resource(TerrainFolder(asset_server.load_folder("terrain")));
+}
+
+fn check_textures(
+    mut next_state: ResMut<NextState<AppState>>,
+    terrain_sprite_folder: Res<TerrainFolder>,
+    character_folder: Res<CharacterFolder>,
+    mut events: EventReader<AssetEvent<LoadedFolder>>,
+) {
+    // TODO: Ensure characters folder is also loaded
+    // Advance the `AppState` once all sprite handles have been loaded by the `AssetServer`
+    for event in events.read() {
+        if event.is_loaded_with_dependencies(&terrain_sprite_folder.0) {
+            next_state.set(AppState::InGame);
+        }
+    }
 }
 
 #[derive(AssetCollection, Resource)]
@@ -65,8 +91,8 @@ struct MyAssets {
 fn main() {
     App::new()
         .init_state::<AppState>()
-        .add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame))
-        .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
+        //.add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame))
+        //.add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
         .add_plugins((
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             CharacterPlugin,
@@ -77,21 +103,27 @@ fn main() {
             RandomMovementPlugin,
             TaskScoringPlugin,
             BasicTasksPlugin,
-            OverlayPlugin { font_size: 14.0, ..default()
-},
+            OverlayPlugin {
+                font_size: 14.0,
+                ..default()
+            },
             PerfUiPlugin,
-                bevy::diagnostic::FrameTimeDiagnosticsPlugin,
-                bevy::diagnostic::EntityCountDiagnosticsPlugin,
-                bevy::diagnostic::SystemInformationDiagnosticsPlugin,
-                                                      //ThirstPlugin,
-                                                      //WorldInspectorPlugin::new(),
+            bevy::diagnostic::FrameTimeDiagnosticsPlugin,
+            bevy::diagnostic::EntityCountDiagnosticsPlugin,
+            bevy::diagnostic::SystemInformationDiagnosticsPlugin,
+            TilemapPlugin,
+            //ThirstPlugin,
+            //WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, setup)
+        .add_systems(OnEnter(AppState::Loading), load_textures)
+        .add_systems(Update, check_textures.run_if(in_state(AppState::Loading)))
         .add_enum_filter::<AllTasks>()
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands)
+{
     commands.spawn(Camera2dBundle::default()).insert(PanCam {
         min_scale: 0.1,
         max_scale: Some(30.0),
@@ -105,37 +137,3 @@ fn setup(mut commands: Commands) {
         PerfUiEntryClock::default(),
     ));*/
 }
-
-// Create a texture atlas with the given padding and sampling settings
-// from the individual sprites in the given folder.
-/*fn create_texture_atlas(
-    folder: &LoadedFolder,
-    padding: Option<UVec2>,
-    sampling: Option<ImageSampler>,
-    textures: &mut ResMut<Assets<Image>>,
-) -> (TextureAtlasLayout, Handle<Image>) {
-    // Build a texture atlas using the individual sprites
-    let mut texture_atlas_builder =
-        TextureAtlasBuilder::default().padding(padding.unwrap_or_default());
-    for handle in folder.handles.iter() {
-        let id = handle.id().typed_unchecked::<Image>();
-        let Some(texture) = textures.get(id) else {
-            warn!(
-                "{:?} did not resolve to an `Image` asset.",
-                handle.path().unwrap()
-            );
-            continue;
-        };
-
-        texture_atlas_builder.add_texture(Some(id), texture);
-    }
-
-    let (texture_atlas_layout, texture) = texture_atlas_builder.finish().unwrap();
-    let texture = textures.add(texture);
-
-    // Update the sampling settings of the texture atlas
-    let image = textures.get_mut(&texture).unwrap();
-    image.sampler = sampling.unwrap_or_default();
-
-    (texture_atlas_layout, texture)
-}*/
