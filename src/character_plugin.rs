@@ -62,7 +62,8 @@ fn add_people(mut commands: Commands, assets: Res<MyAssets>) {
                 transform: Transform::from_xyz(0.0, 20.0, 10.0),
                 global_transform: Default::default(),
                 visibility: Default::default(),
-                computed_visibility: Default::default(),
+                inherited_visibility: Default::default(),
+                view_visibility: Default::default(),
                 text_layout_info: Default::default(),
             });
         });

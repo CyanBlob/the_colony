@@ -5,8 +5,8 @@ use bevy::prelude::*;
 use rand::prelude::*;
 
 const SPRITE_SIZE: i32 = 32;
-const WORLD_SIZE_X: i32 = 128;
-const WORLD_SIZE_Y: i32 = 128;
+const WORLD_SIZE_X: i32 = 512;
+const WORLD_SIZE_Y: i32 = 512;
 
 #[derive(Component)]
 pub struct Terrain;
@@ -65,7 +65,8 @@ fn create_world(mut commands: Commands, image_assets: Res<MyAssets>) {
                     global_transform: Default::default(),
                     texture: texture.clone(),
                     visibility: Visibility::Visible,
-                    computed_visibility: Default::default(),
+                    inherited_visibility: Default::default(),
+                    view_visibility: Default::default(),
                 },
                 Terrain,
             ));
@@ -83,7 +84,8 @@ fn create_world(mut commands: Commands, image_assets: Res<MyAssets>) {
                         global_transform: Default::default(),
                         texture: image_assets.ugly_flower.clone(),
                         visibility: Visibility::Visible,
-                        computed_visibility: Default::default(),
+                        inherited_visibility: Default::default(),
+                        view_visibility: Default::default(),
                     },
                     Plant,
                     Growth {

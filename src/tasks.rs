@@ -116,9 +116,9 @@ fn sleep_system(time: Res<Time>, mut query: Query<&mut Sleep>) {
     }
 }
 
-fn eat(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Hunger, With<Character>, With<Enum!(AllTasks::Eat)>)>)
+fn eat(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Hunger), (With<Character>, With<Enum!(AllTasks::Eat)>)>)
 {
-    for (entity, mut hunger, _, _) in query.iter_mut() {
+    for (entity, mut hunger) in query.iter_mut() {
         hunger.value += thread_rng().gen_range(10.0..50.0) * time.delta_seconds() + hunger.drain_rate * time.delta_seconds();
         if hunger.value >= 100.0 {
             commands.entity(entity).remove::<Busy>();
@@ -126,9 +126,9 @@ fn eat(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut H
     }
 }
 
-fn drink(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Thirst, With<Character>, With<Enum!(AllTasks::Drink)>)>)
+fn drink(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Thirst), (With<Character>, With<Enum!(AllTasks::Drink)>)>)
 {
-    for (entity, mut thirst, _, _) in query.iter_mut() {
+    for (entity, mut thirst) in query.iter_mut() {
         thirst.value += thread_rng().gen_range(10.0..50.0) * time.delta_seconds() + thirst.drain_rate * time.delta_seconds();
         if thirst.value >= 100.0 {
             commands.entity(entity).remove::<Busy>();
@@ -136,9 +136,9 @@ fn drink(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut
     }
 }
 
-fn sleep(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Sleep, With<Character>, With<Enum!(AllTasks::Sleep)>)>)
+fn sleep(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Sleep), (With<Character>, With<Enum!(AllTasks::Sleep)>)>)
 {
-    for (entity, mut sleep, _, _) in query.iter_mut() {
+    for (entity, mut sleep) in query.iter_mut() {
         sleep.value += thread_rng().gen_range(2.0..16.0) * time.delta_seconds() + sleep.drain_rate * time.delta_seconds();
         if sleep.value >= 100.0 {
             commands.entity(entity).remove::<Busy>();

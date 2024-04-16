@@ -48,12 +48,12 @@ fn begin_eat(mut commands: Commands, query: Query<(Entity), (Added<Enum!(AllTask
     }
 }
 
-fn check_wander(query: Query<(Entity, With<Character>, With<Enum!(AllTasks::Wander)>)>)
+fn check_wander(query: Query<Entity, (With<Character>, With<Enum!(AllTasks::Wander)>)>)
 {
     println!("Wandering");
 }
 
-fn check_task(query: Query<(Entity, With<Character>, &AllTasks)>)
+fn check_task(query: Query<(Entity, &AllTasks), With<Character>>)
 {
     //println!("TASKS:");
     //for (_, _, task) in &query {

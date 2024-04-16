@@ -23,9 +23,9 @@ pub struct RandomDirection {
 
 fn wander(
     mut commands: Commands,
-    query: Query<(Entity, With::<Character>, With<Enum!(AllTasks::Wander)>), Without<Wandering>>)
+    query: Query<Entity, (With::<Character>, With::<Enum!(AllTasks::Wander)>, Without::<Wandering>)>)
 {
-    for (entity, _, _) in &query {
+    for (entity) in &query {
         commands
             .entity(entity)
             .insert((Wandering, RandomDirection::default()));
@@ -45,11 +45,11 @@ fn move_randomly(
 fn update_random_dir(
     time: Res<Time>,
     mut timer: ResMut<ChangeDirTimer>,
-    mut query: Query<(&mut RandomDirection, With<Wandering>, With<Enum!(AllTasks::Wander)>)>,
+    mut query: Query<&mut RandomDirection, (With<Wandering>, With<Enum!(AllTasks::Wander)>)>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
         for mut dir in query.iter_mut() {
-            update_random_dir_base(dir.0);
+            update_random_dir_base(dir);
         }
     }
 }
