@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Arch.Core;
 using Arch.System;
 
@@ -21,11 +22,22 @@ public partial class HungerSystem : BaseSystem<World, double>
     {
     }
 
+    /*[Query]
+    [All(typeof(Eat))]
+    private static void FindFood(ref TargetPosition targetPos)
+    {
+        var query = new QueryDescription().WithAll<ProvidesFood>();
+        WorldManager.world.Query(in query,
+            (ref ProvidesFood food, ref Position pos) => { Debug.Print($"Found food at: {pos.pos}"); });
+    }*/
+
     [Query]
-    public void GetHungry([Data] in double time, ref Hunger hunger)
+    private static void GetHungry([Data] in double time, ref Hunger hunger)
     {
         hunger.current -= hunger.rate * (float)time;
 
         if (hunger.current < 0) hunger.current = 0;
+
+        Debug.Print($"Hunger: {hunger.current}");
     }
 }

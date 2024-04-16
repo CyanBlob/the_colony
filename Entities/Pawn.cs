@@ -1,31 +1,34 @@
 using Arch.Core;
 using Arch.Core.Extensions;
 using Godot;
+using the_colony.Systems;
 
 public partial class Pawn : CharacterBody2D
 {
+    private NextPosition _nextPos;
     private Entity entity;
     private NavigationAgent2D navAgent;
 
     private Vector2[] path;
     private Vector2 pos;
-    private TargetPosition targetPos;
 
     private Vector2 targetVec;
 
     public override void _Ready()
     {
-        navAgent = GetNode<NavigationAgent2D>("NavigationAgent2D");
-
-        targetPos.targetPos = new Vector2(Position.X, Position.Y);
+        _nextPos.nextPos = new Vector2(Position.X, Position.Y);
 
         entity = WorldManager.world.Create(
             new Position { pos = new Vector2(Position.X, Position.Y) },
-            targetPos,
+            _nextPos,
+            new TargetPosition { targetPos = new Vector2(Position.X, Position.Y) },
             new MoveSpeed { speed = 50 },
             new Velocity { Dx = 10, Dy = 10 },
-            this as CharacterBody2D,
-            this);
+            new NeedsPath(),
+            new Hunger { current = 100, max = 100, rate = 3 },
+            new Task { task = Tasks.Wander },
+            new ChooseTask(),
+            this as CharacterBody2D);
     }
 
     public override void _Draw()
@@ -44,21 +47,22 @@ public partial class Pawn : CharacterBody2D
 
     public override void _Process(double delta)
     {
+        return;
         var point = WorldManager.aStar.GetClosestPoint(GetGlobalMousePosition());
 
         path = WorldManager.aStar.GetPointPath(WorldManager.aStar.GetClosestPoint(Position), point);
 
         if (path.Length < 1)
-            targetPos.targetPos = Position;
+            _nextPos.nextPos = WorldManager.aStar.GetPointPosition(WorldManager.aStar.GetClosestPoint(Position));
         else if (path.Length < 2)
-            targetPos.targetPos = ToLocal(path[0]);
+            _nextPos.nextPos = ToLocal(path[0]);
         else
-            targetPos.targetPos = ToLocal(path[1]);
+            _nextPos.nextPos = ToLocal(path[1]);
 
-        targetVec = targetPos.targetPos;
+        targetVec = _nextPos.nextPos;
         pos = ToLocal(WorldManager.aStar.GetPointPosition(WorldManager.aStar.GetClosestPoint(Position)));
 
-        entity.Set(targetPos);
+        entity.Set(_nextPos);
 
         //QueueRedraw();
     }

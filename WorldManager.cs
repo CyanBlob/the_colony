@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Arch.Core;
 using Arch.System;
 using Godot;
+using the_colony.Systems;
 
 public partial class WorldManager : Node
 {
@@ -18,7 +19,9 @@ public partial class WorldManager : Node
         world = World.Create();
         _systems = new Group<double>(
             "Main",
-            new MovementSystem(world) // Run in order
+            new MovementSystem(world), // Run in order
+            new HungerSystem(world),
+            new TaskSystem(world)
             //new MyOtherSystem(...),
         );
         _systems.Initialize(); // Inits all registered systems
