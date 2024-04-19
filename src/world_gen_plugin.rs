@@ -1,4 +1,4 @@
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
@@ -15,7 +15,7 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{AppState, TerrainFolder};
 use crate::AppState::InGame;
-use crate::growth_plugin::{Growth};
+use crate::growth_plugin::Growth;
 
 const SPRITE_SIZE: i32 = 32;
 const WORLD_SIZE_X: i32 = 256;
@@ -282,10 +282,6 @@ fn addAstarNeighbors(
 
     let aStar = &mut astarQuery.get_single_mut().unwrap().aStar;
 
-    //let mut aStar_mutex = Mutex::new(Arc::new(&astarQuery.get_single_mut().unwrap().aStar));
-    //let mut aStar_mutex = Mutex::new((&astarQuery.get_single_mut().unwrap().aStar));
-    //let mut aStar_mutex = Arc::new(Mutex::new(astarQuery.get_single_mut().unwrap().aStar));
-
     let edges_mutex = Mutex::new(vec![]);
 
     let map_size = TilemapSize {
@@ -299,18 +295,12 @@ fn addAstarNeighbors(
         for neighbor in
         Neighbors::get_square_neighboring_positions(&tile_pos, &map_size, true).iter()
         {
-            //let neighbor_entity = all_tiles.iter().find(|(a, b, c)| b == &neighbor);
-
             let neighbor_entity = tile_storage.get(&neighbor);
 
             let neighbor_entity = query.get(neighbor_entity.unwrap()).unwrap();
 
-            //let mut aStar = aStar_mutex.lock().unwrap();
-
-            //aStar.add_edge(astar_id.id, neighbor_entity.2.id, 1);
             edges_mutex.lock().unwrap().push((astar_id.id, neighbor_entity.2.id, 1, entity));
         }
-        //commands.entity(entity).remove::<NeedsAstarNeighbors>();
     });
 
     for edge in edges_mutex.lock().unwrap().iter() {
@@ -318,12 +308,9 @@ fn addAstarNeighbors(
         commands.entity(edge.3).remove::<NeedsAstarNeighbors>();
     }
 
-
-    // TODO: This can probably be sped up
-    //for (entity, tile_pos, astar_id) in query.iter() {
-
-    //}
     let aStar = &astarQuery.get_single_mut().unwrap().aStar;
+
+    let now = std::time::Instant::now();
 
     let path = astar(
         &aStar,
@@ -333,11 +320,13 @@ fn addAstarNeighbors(
         |_| 0,
     );
 
+    let elapsed_time = now.elapsed();
+    println!("Getting a* path took {} ms.", elapsed_time.as_millis());
+
     for step in path.unwrap().1.iter() {
         let pos = all_tiles.par_iter().find_any(|(a, b, c)| &c.id == step);
 
         commands.spawn(MaterialMesh2dBundle {
-            //mesh: Circle { radius: 10.0 },
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 10.0 })),
             material: materials.add(Color::rgb(0., 1., 1.)),
             transform: Transform {
