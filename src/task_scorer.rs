@@ -18,7 +18,7 @@ pub struct Busy;
 fn score_basic_tasks(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(Entity, &Name, &mut AllTasks, &Thirst, &Hunger, &Sleep), (Without<Busy>)>,
+    mut query: Query<(Entity, &Name, &mut AllTasks, &Thirst, &Hunger, &Sleep), Without<Busy>>,
 ) {
     for (entity, name, mut task, thirst, hunger, sleep) in query.iter_mut() {
         let mut ratings = vec![(AllTasks::Wander, 1.0)];
@@ -44,7 +44,7 @@ fn score_basic_tasks(
     }
 }
 
-fn begin_eat(mut commands: Commands, query: Query<(Entity), (Added<Enum!(AllTasks::Eat)>)>) {
+fn begin_eat(mut commands: Commands, query: Query<Entity, Added<Enum!(AllTasks::Eat)>>) {
     for entity in &query {
         commands.entity(entity).insert(Busy);
     }
@@ -62,10 +62,10 @@ fn check_task(query: Query<(Entity, &AllTasks), With<Character>>) {
 }
 
 fn render_task_text(
-    p_query: Query<(Entity, &Children, &AllTasks, &Name), (With<Character>)>,
-    mut c_query: Query<(&mut Text)>,
+    p_query: Query<(Entity, &Children, &AllTasks, &Name), With<Character>>,
+    mut c_query: Query<&mut Text>,
 ) {
-    for (_, mut children, task, name) in p_query.iter() {
+    for (_, children, task, name) in p_query.iter() {
         // `children` is a collection of Entity IDs
         for &child in children.iter() {
             // get the text child

@@ -1,6 +1,6 @@
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
-use bevy_asset_loader::prelude::{AssetCollection, LoadingStateAppExt};
+use bevy_asset_loader::prelude::{AssetCollection};
 use bevy_debug_text_overlay::OverlayPlugin;
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_enum_filter::prelude::*;

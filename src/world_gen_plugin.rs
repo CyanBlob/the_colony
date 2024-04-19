@@ -1,29 +1,21 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Mutex};
 
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
-use bevy::ecs::query::QueryEntityError;
 use bevy::prelude::*;
-use bevy::prelude::Keyframes::Translation;
-use bevy::render::mesh::CircleMeshBuilder;
 use bevy::render::texture::ImageSampler;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy::utils::petgraph::{Graph, Undirected};
 use bevy::utils::petgraph::algo::astar;
 use bevy::utils::petgraph::prelude::NodeIndex;
-use bevy_ecs_tilemap::helpers::square_grid::*;
 use bevy_ecs_tilemap::helpers::square_grid::neighbors::Neighbors;
 use bevy_ecs_tilemap::prelude::*;
-use bevy_enum_filter::Enum;
 use rand::prelude::*;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{AppState, CharacterFolder, MyAssets, TerrainFolder};
+use crate::{AppState, TerrainFolder};
 use crate::AppState::InGame;
-use crate::character_plugin::Character;
-use crate::growth_plugin::{Growth, Plant};
-use crate::task_scorer::Busy;
-use crate::tasks::{Hunger, Thirst};
+use crate::growth_plugin::{Growth};
 
 const SPRITE_SIZE: i32 = 32;
 const WORLD_SIZE_X: i32 = 256;
@@ -277,9 +269,9 @@ fn create_world(
 
 fn addAstarNeighbors(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut TilePos, &mut AstarId), With<NeedsAstarNeighbors>>,
+    query: Query<(Entity, &mut TilePos, &mut AstarId), With<NeedsAstarNeighbors>>,
     mut astarQuery: Query<&mut PathfindingRefs>,
-    mut tileStorageQuery: Query<&TileStorage>,
+    tileStorageQuery: Query<&TileStorage>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
@@ -288,7 +280,7 @@ fn addAstarNeighbors(
     }
     let all_tiles = &query.iter().collect::<Vec<_>>();
 
-    let mut aStar = &mut astarQuery.get_single_mut().unwrap().aStar;
+    let aStar = &mut astarQuery.get_single_mut().unwrap().aStar;
 
     //let mut aStar_mutex = Mutex::new(Arc::new(&astarQuery.get_single_mut().unwrap().aStar));
     //let mut aStar_mutex = Mutex::new((&astarQuery.get_single_mut().unwrap().aStar));

@@ -32,7 +32,7 @@ fn wander(
         ),
     >,
 ) {
-    for (entity) in &query {
+    for entity in &query {
         commands
             .entity(entity)
             .insert((Wandering, RandomDirection::default()));
@@ -58,7 +58,7 @@ fn update_random_dir(
     mut query: Query<&mut RandomDirection, (With<Wandering>, With<Enum!(AllTasks::Wander)>)>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        for mut dir in query.iter_mut() {
+        for dir in query.iter_mut() {
             update_random_dir_base(dir);
         }
     }

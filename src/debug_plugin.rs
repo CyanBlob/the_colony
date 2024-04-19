@@ -11,9 +11,9 @@ pub struct DebugPlugin;
 
 fn debugCharacterPos(
     mut commands: Commands,
-    mut query: Query<(&Transform), With<Character>>,
-    mut astarQuery: Query<&mut PathfindingRefs>,
-    mut tileStorageQuery: Query<&TileStorage>,
+    query: Query<&Transform, With<Character>>,
+    astarQuery: Query<&mut PathfindingRefs>,
+    tileStorageQuery: Query<&TileStorage>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
