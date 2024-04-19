@@ -2,11 +2,11 @@ use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
-use crate::{AppState, CharacterFolder};
 use crate::name_plugin::{Name, NeedsName};
 use crate::tasks::*;
+use crate::{AppState, CharacterFolder};
 
 #[derive(Component)]
 pub struct Character;
@@ -50,50 +50,52 @@ fn add_people(
     let character_index = texture_atlas_linear.get_texture_index(&character).unwrap();
 
     for _ in 0..10 {
-        commands.spawn((
-            PlayerBundle {
-                sprite: SpriteBundle {
-                    texture: linear_texture.clone(),
-                    transform: Transform::from_xyz(
-                        rand.gen_range(-1000.0..1000.0),
-                        rand.gen_range(-640.0..640.0),
-                        100.0,
-                    ),
-                    ..default()
+        commands
+            .spawn((
+                PlayerBundle {
+                    sprite: SpriteBundle {
+                        texture: linear_texture.clone(),
+                        transform: Transform::from_xyz(
+                            rand.gen_range(-1000.0..1000.0),
+                            rand.gen_range(-640.0..640.0),
+                            100.0,
+                        ),
+                        ..default()
+                    },
+                    character: Character,
+                    thirst: Thirst::default(),
+                    hunger: Hunger::default(),
+                    sleep: Sleep::default(),
+                    target_task: AllTasks::default(),
                 },
-                character: Character,
-                thirst: Thirst::default(),
-                hunger: Hunger::default(),
-                sleep: Sleep::default(),
-                target_task: AllTasks::default(),
-            },
-            TextureAtlas {
-                layout: atlas_linear_handle.clone(),
-                index: character_index,
-            },
-            NeedsName,
-            /*Text2dBundle {
-                transform: Default::default(),
-                text_anchor: Default::default(),
-                text_2d_bounds: Default::default(),
-                global_transform: Default::default(),
-                visibility: Default::default(),
-                computed_visibility: Default::default(),
-                text_layout_info: Default::default(),
-            }*/
-        )).with_children(|parent| {
-            parent.spawn(Text2dBundle {
-                text: Text::from_section("TEST TEXT", TextStyle::default()),
-                text_anchor: Default::default(),
-                text_2d_bounds: Default::default(),
-                transform: Transform::from_xyz(0.0, 20.0, 10.0),
-                global_transform: Default::default(),
-                visibility: Default::default(),
-                inherited_visibility: Default::default(),
-                view_visibility: Default::default(),
-                text_layout_info: Default::default(),
+                TextureAtlas {
+                    layout: atlas_linear_handle.clone(),
+                    index: character_index,
+                },
+                NeedsName,
+                /*Text2dBundle {
+                    transform: Default::default(),
+                    text_anchor: Default::default(),
+                    text_2d_bounds: Default::default(),
+                    global_transform: Default::default(),
+                    visibility: Default::default(),
+                    computed_visibility: Default::default(),
+                    text_layout_info: Default::default(),
+                }*/
+            ))
+            .with_children(|parent| {
+                parent.spawn(Text2dBundle {
+                    text: Text::from_section("TEST TEXT", TextStyle::default()),
+                    text_anchor: Default::default(),
+                    text_2d_bounds: Default::default(),
+                    transform: Transform::from_xyz(0.0, 20.0, 10.0),
+                    global_transform: Default::default(),
+                    visibility: Default::default(),
+                    inherited_visibility: Default::default(),
+                    view_visibility: Default::default(),
+                    text_layout_info: Default::default(),
+                });
             });
-        });
     }
 
     return;
@@ -154,6 +156,6 @@ impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TickTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
             .add_systems(OnExit(AppState::Loading), add_people)
-            .add_systems(Update, tick_pop.run_if(in_state(AppState::InGame)));
+            .add_systems(Update, tick_pop.run_if(in_state(AppState::CreateWorld)));
     }
 }

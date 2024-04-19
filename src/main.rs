@@ -20,16 +20,18 @@ use crate::world_gen_plugin::WorldGenPlugin;
 mod character_plugin;
 mod growth_plugin;
 mod name_plugin;
-mod wander_plugin;
-mod world_gen_plugin;
 mod task_scorer;
 mod tasks;
+mod wander_plugin;
+mod world_gen_plugin;
+mod debug_plugin;
 
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
     #[default]
     Loading,
     MainMenu,
+    CreateWorld,
     InGame,
     Paused,
 }
@@ -56,7 +58,7 @@ fn check_textures(
     // Advance the `AppState` once all sprite handles have been loaded by the `AssetServer`
     for event in events.read() {
         if event.is_loaded_with_dependencies(&terrain_sprite_folder.0) {
-            next_state.set(AppState::InGame);
+            next_state.set(AppState::CreateWorld);
         }
     }
 }
@@ -115,6 +117,7 @@ fn main() {
             //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
+        //.add_plugins(DebugPlugin)
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Loading), load_textures)
         .add_systems(Update, check_textures.run_if(in_state(AppState::Loading)))
@@ -122,8 +125,7 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands)
-{
+fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default()).insert(PanCam {
         min_scale: 0.1,
         max_scale: Some(30.0),

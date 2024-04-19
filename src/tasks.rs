@@ -1,12 +1,12 @@
+use crate::character_plugin::Character;
+use crate::task_scorer::{Busy, Task};
+use crate::AppState;
+use crate::AppState::InGame;
 use bevy::app::App;
 use bevy::prelude::*;
 use bevy_enum_filter::{Enum, EnumFilter};
-use rand::{Rng, thread_rng};
-use crate::task_scorer::{Busy, Task};
-use strum_macros::{EnumString, IntoStaticStr, AsRefStr};
-use crate::AppState;
-use crate::AppState::InGame;
-use crate::character_plugin::Character;
+use rand::{thread_rng, Rng};
+use strum_macros::{AsRefStr, EnumString, IntoStaticStr};
 
 #[derive(EnumFilter, Component, Debug, Clone, Copy, EnumString, IntoStaticStr, AsRefStr)]
 pub enum AllTasks {
@@ -67,7 +67,6 @@ impl Default for Sleep {
     }
 }
 
-
 impl Task for Thirst {
     fn score(&self) -> f32 {
         if self.value < 50.0 {
@@ -116,30 +115,42 @@ fn sleep_system(time: Res<Time>, mut query: Query<&mut Sleep>) {
     }
 }
 
-fn eat(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Hunger), (With<Character>, With<Enum!(AllTasks::Eat)>)>)
-{
+fn eat(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Hunger), (With<Character>, With<Enum!(AllTasks::Eat)>)>,
+) {
     for (entity, mut hunger) in query.iter_mut() {
-        hunger.value += thread_rng().gen_range(10.0..50.0) * time.delta_seconds() + hunger.drain_rate * time.delta_seconds();
+        hunger.value += thread_rng().gen_range(10.0..50.0) * time.delta_seconds()
+            + hunger.drain_rate * time.delta_seconds();
         if hunger.value >= 100.0 {
             commands.entity(entity).remove::<Busy>();
         }
     }
 }
 
-fn drink(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Thirst), (With<Character>, With<Enum!(AllTasks::Drink)>)>)
-{
+fn drink(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Thirst), (With<Character>, With<Enum!(AllTasks::Drink)>)>,
+) {
     for (entity, mut thirst) in query.iter_mut() {
-        thirst.value += thread_rng().gen_range(10.0..50.0) * time.delta_seconds() + thirst.drain_rate * time.delta_seconds();
+        thirst.value += thread_rng().gen_range(10.0..50.0) * time.delta_seconds()
+            + thirst.drain_rate * time.delta_seconds();
         if thirst.value >= 100.0 {
             commands.entity(entity).remove::<Busy>();
         }
     }
 }
 
-fn sleep(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut Sleep), (With<Character>, With<Enum!(AllTasks::Sleep)>)>)
-{
+fn sleep(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Sleep), (With<Character>, With<Enum!(AllTasks::Sleep)>)>,
+) {
     for (entity, mut sleep) in query.iter_mut() {
-        sleep.value += thread_rng().gen_range(2.0..16.0) * time.delta_seconds() + sleep.drain_rate * time.delta_seconds();
+        sleep.value += thread_rng().gen_range(2.0..16.0) * time.delta_seconds()
+            + sleep.drain_rate * time.delta_seconds();
         if sleep.value >= 100.0 {
             commands.entity(entity).remove::<Busy>();
         }

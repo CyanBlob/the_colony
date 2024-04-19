@@ -1,12 +1,12 @@
 use crate::character_plugin::Character;
+use crate::tasks::*;
 use crate::AppState;
+use crate::AppState::Loading;
 use bevy::app::App;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
 use bevy_enum_filter::prelude::*;
 use rand::{thread_rng, Rng};
-use crate::AppState::Loading;
-use crate::tasks::*;
 
 pub struct RandomMovementPlugin;
 
@@ -23,8 +23,15 @@ pub struct RandomDirection {
 
 fn wander(
     mut commands: Commands,
-    query: Query<Entity, (With::<Character>, With::<Enum!(AllTasks::Wander)>, Without::<Wandering>)>)
-{
+    query: Query<
+        Entity,
+        (
+            With<Character>,
+            With<Enum!(AllTasks::Wander)>,
+            Without<Wandering>,
+        ),
+    >,
+) {
     for (entity) in &query {
         commands
             .entity(entity)
@@ -34,8 +41,11 @@ fn wander(
 
 fn move_randomly(
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &RandomDirection), (With<Wandering>, With<Enum!(AllTasks::Wander)>)>) {
-
+    mut query: Query<
+        (&mut Transform, &RandomDirection),
+        (With<Wandering>, With<Enum!(AllTasks::Wander)>),
+    >,
+) {
     for (mut transform, dir) in query.iter_mut() {
         transform.translation.x += time.delta_seconds() * dir.dir.x * 5.0;
         transform.translation.y += time.delta_seconds() * dir.dir.y * 5.0;
@@ -54,9 +64,7 @@ fn update_random_dir(
     }
 }
 
-fn update_random_dir_without_tick(
-    mut query: Query<&mut RandomDirection>,
-) {
+fn update_random_dir_without_tick(mut query: Query<&mut RandomDirection>) {
     for dir in query.iter_mut() {
         update_random_dir_base(dir);
     }
@@ -71,10 +79,7 @@ impl Plugin for RandomMovementPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ChangeDirTimer(Timer::from_seconds(2.0, Repeating)))
             .add_systems(OnExit(Loading), update_random_dir_without_tick)
-            .add_systems(
-                Update,
-                wander.run_if(in_state(AppState::InGame)),
-            )
+            .add_systems(Update, wander.run_if(in_state(AppState::InGame)))
             .add_systems(Update, move_randomly.run_if(in_state(AppState::InGame)))
             .add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
     }
