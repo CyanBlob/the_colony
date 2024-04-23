@@ -1,12 +1,12 @@
+use crate::growth_plugin::Growth;
+use crate::pathing::{PathPositions, Pos};
+use crate::{AppState, TerrainFolder};
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
 use bevy_ecs_tilemap::prelude::*;
 use rand::prelude::*;
-use crate::{AppState, TerrainFolder};
-use crate::growth_plugin::Growth;
-use crate::pathing::{PathPositions, Pos};
 
 pub const SPRITE_SIZE: i32 = 32;
 pub const WORLD_SIZE_X: i32 = 256;
@@ -104,8 +104,8 @@ fn create_world(
 
     //let ugly_flower: Handle<Image> = asset_server.get_handle("terrain/ugly_flower.png").unwrap();
     /*let ugly_flower_index = texture_atlas_linear
-        .get_texture_index(&ugly_flower)
-        .unwrap();*/
+    .get_texture_index(&ugly_flower)
+    .unwrap();*/
 
     // includes grass duplicates to encourage grass growth
     let terrain_textures = vec![
@@ -162,21 +162,22 @@ fn create_world(
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn((
-                    TileBundle {
-                        position: tile_pos,
-                        tilemap_id: TilemapId(tilemap_entity),
-                        texture_index: TileTextureIndex(
-                            terrain_textures[rand.gen_range(0..terrain_textures.len())] as u32,
-                        ),
-                        ..default()
-                    },
-                ))
+                .spawn((TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    texture_index: TileTextureIndex(
+                        terrain_textures[rand.gen_range(0..terrain_textures.len())] as u32,
+                    ),
+                    ..default()
+                },))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
 
             positions.push(Pos::new(x as i32, y as i32));
-            absolute_positions.push(((x as i32 * SPRITE_SIZE) as i32, (y as i32 * SPRITE_SIZE) as i32));
+            absolute_positions.push((
+                (x as i32 * SPRITE_SIZE) as i32,
+                (y as i32 * SPRITE_SIZE) as i32,
+            ));
             tile_positions.push(tile_pos);
         }
     }
@@ -184,7 +185,7 @@ fn create_world(
     commands.spawn(PathPositions {
         positions: positions,
         abs_positions: absolute_positions,
-        tile_positions: tile_positions
+        tile_positions: tile_positions,
     });
 
     let tile_size = TilemapTileSize {
@@ -207,7 +208,6 @@ fn create_world(
 
     next_state.set(AppState::InGame);
 }
-
 
 impl Plugin for WorldGenPlugin {
     fn build(&self, app: &mut App) {

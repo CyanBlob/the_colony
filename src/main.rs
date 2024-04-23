@@ -1,9 +1,11 @@
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
-use bevy_asset_loader::prelude::{AssetCollection};
+use bevy::window::PresentMode;
+use bevy_asset_loader::prelude::AssetCollection;
 use bevy_debug_text_overlay::OverlayPlugin;
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_enum_filter::prelude::*;
+use bevy_framepace::{FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin};
 
@@ -19,14 +21,14 @@ use crate::wander_plugin::RandomMovementPlugin;
 use crate::world_gen_plugin::WorldGenPlugin;
 
 mod character_plugin;
+mod debug_plugin;
 mod growth_plugin;
 mod name_plugin;
+mod pathing;
 mod task_scorer;
 mod tasks;
 mod wander_plugin;
 mod world_gen_plugin;
-mod debug_plugin;
-mod pathing;
 
 #[allow(unused)]
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
@@ -101,7 +103,15 @@ fn main() {
         //.add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame))
         //.add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
         .add_plugins((
-            DefaultPlugins.set(ImagePlugin::default_nearest()),
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        present_mode: PresentMode::AutoNoVsync,
+                        ..default()
+                    }),
+                    ..default()
+                }),
             CharacterPlugin,
             NamePlugin,
             WorldGenPlugin,
@@ -114,7 +124,6 @@ fn main() {
                 font_size: 14.0,
                 ..default()
             },
-            PerfUiPlugin,
             bevy::diagnostic::FrameTimeDiagnosticsPlugin,
             bevy::diagnostic::EntityCountDiagnosticsPlugin,
             bevy::diagnostic::SystemInformationDiagnosticsPlugin,
@@ -122,7 +131,7 @@ fn main() {
             //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
-        .add_plugins(DebugPlugin)
+        .add_plugins((DebugPlugin, bevy_framepace::FramepacePlugin, PerfUiPlugin))
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Loading), load_textures)
         .add_systems(Update, check_textures.run_if(in_state(AppState::Loading)))
@@ -130,12 +139,14 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut framepace: ResMut<FramepaceSettings>) {
     commands.spawn(Camera2dBundle::default()).insert(PanCam {
         min_scale: 0.1,
         max_scale: Some(30.0),
         ..default()
     });
+
+    framepace.limiter = Limiter::Off;
 
     commands.spawn(PerfUiCompleteBundle::default());
     /*commands.spawn((

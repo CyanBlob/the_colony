@@ -22,6 +22,7 @@ bevy_enum_filter = { git = "https://github.com/sardap/bevy_enum_filter" }
 bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", features = ["atlas"] }
 rayon = "1.10.0"
 pathfinding = "4.9.1"
+bevy_framepace = "0.15.0"
 #bevy_enum_filter = "0.3.0"
 
 # for converting enums to strings

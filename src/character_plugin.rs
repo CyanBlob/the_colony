@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
 use rand::{thread_rng, Rng};
 
-use crate::name_plugin::{NeedsName};
+use crate::name_plugin::NeedsName;
 use crate::tasks::*;
 use crate::{AppState, CharacterFolder};
 
@@ -143,6 +143,6 @@ fn add_people(
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-            app.add_systems(OnExit(AppState::Loading), add_people);
+        app.add_systems(OnExit(AppState::Loading), add_people);
     }
 }

@@ -1,9 +1,9 @@
 use crate::world_gen_plugin::SPRITE_SIZE;
+use crate::AppState;
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_ecs_tilemap::prelude::TileStorage;
-use crate::AppState;
 
 use crate::character_plugin::Character;
 use crate::pathing::Pos;
@@ -44,8 +44,12 @@ fn visualize_astar(
     let start = Pos(0, 0);
     let goal = Pos(255, 255);
 
-    let path = pathfinding::prelude::astar(&start, |p| p.successors(), |p| p.distance(&goal) / 3,
-                                           |p| *p == goal);
+    let path = pathfinding::prelude::astar(
+        &start,
+        |p| p.successors(),
+        |p| p.distance(&goal) / 3,
+        |p| *p == goal,
+    );
     let elapsed_time = now.elapsed();
     println!("Getting a* path took {} ms.", elapsed_time.as_millis());
 
@@ -57,8 +61,10 @@ fn visualize_astar(
             material: materials.add(Color::rgb(0., 1., 1.)),
             transform: Transform {
                 translation: Vec3::new(
-                    pos.0 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.x * SPRITE_SIZE as u32) as f32 / 2.,
-                    pos.1 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.y * SPRITE_SIZE as u32) as f32 / 2.,
+                    pos.0 as f32 * SPRITE_SIZE as f32
+                        - (tile_storage.size.x * SPRITE_SIZE as u32) as f32 / 2.,
+                    pos.1 as f32 * SPRITE_SIZE as f32
+                        - (tile_storage.size.y * SPRITE_SIZE as u32) as f32 / 2.,
                     100.0,
                 ),
                 rotation: Default::default(),
@@ -72,10 +78,9 @@ fn visualize_astar(
     }
 }
 
-
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-       //app.add_systems(Update, debug_character_pos.run_if(in_state(InGame)));
+        //app.add_systems(Update, debug_character_pos.run_if(in_state(InGame)));
         app.add_systems(OnEnter(AppState::InGame), visualize_astar);
     }
 }
