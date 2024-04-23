@@ -5,10 +5,9 @@ use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+//use bevy::utils::petgrpub apub ph::{Graph, Undirected};
 use bevy::utils::petgraph::{Graph, Undirected};
-use bevy::utils::petgraph::algo::astar;
 use bevy::utils::petgraph::prelude::NodeIndex;
-use bevy_ecs_tilemap::helpers::square_grid::neighbors::Neighbors;
 use bevy_ecs_tilemap::prelude::*;
 use rand::prelude::*;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
@@ -16,10 +15,11 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use crate::{AppState, TerrainFolder};
 use crate::AppState::InGame;
 use crate::growth_plugin::Growth;
+use crate::pathing::{PathPositions, Pos};
 
-const SPRITE_SIZE: i32 = 32;
-const WORLD_SIZE_X: i32 = 256;
-const WORLD_SIZE_Y: i32 = 256;
+pub const SPRITE_SIZE: i32 = 32;
+pub const WORLD_SIZE_X: i32 = 256;
+pub const WORLD_SIZE_Y: i32 = 256;
 
 #[derive(Component)]
 pub struct Terrain;
@@ -27,11 +27,6 @@ pub struct Terrain;
 #[derive(Component)]
 pub struct AstarId {
     id: NodeIndex,
-}
-
-#[derive(Component)]
-pub struct PathfindingRefs {
-    aStar: Graph<i32, i32, Undirected>,
 }
 
 #[derive(Component)]
@@ -107,25 +102,6 @@ fn create_world(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let mut rand = thread_rng();
-
-    let mut aStar = Graph::<i32, i32, Undirected>::new_undirected();
-    /*let a = aStar.add_node(0);
-    let b = aStar.add_node(0);
-    let c = aStar.add_node(0);
-    let d = aStar.add_node(0);
-    let e = aStar.add_node(0);
-    let f = aStar.add_node(0);
-    aStar.extend_with_edges(&[
-        (a, b, 2),
-        (a, d, 4),
-        (b, c, 1),
-        (b, f, 7),
-        (c, e, 5),
-        (e, f, 1),
-        (d, e, 1),
-    ]);*/
-
-    //assert_eq!(path, Some((6, vec![a, d, e, f])));
 
     // All the texture atlas stuff is from: https://github.com/bevyengine/bevy/blob/main/examples/2d/texture_atlas.rs
     let loaded_folder = loaded_folders.get(&terrain_sprites_handles.0).unwrap();
@@ -221,6 +197,9 @@ fn create_world(
 
     // Spawn the elements of the tilemap.
     // Alternatively, you can use helpers::filling::fill_tilemap.
+    let mut positions = vec![];
+    let mut absolute_positions = vec![];
+    let mut tile_positions = vec![];
     for x in 0..map_size.x {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
@@ -234,15 +213,21 @@ fn create_world(
                         ),
                         ..default()
                     },
-                    AstarId {
-                        id: aStar.add_node(1),
-                    },
-                    NeedsAstarNeighbors,
                 ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
+
+            positions.push(Pos::new(x as i32, y as i32));
+            absolute_positions.push(((x as i32 * SPRITE_SIZE) as i32, (y as i32 * SPRITE_SIZE) as i32));
+            tile_positions.push(tile_pos);
         }
     }
+
+    commands.spawn((PathPositions {
+        positions: positions,
+        abs_positions: absolute_positions,
+        tile_positions: tile_positions
+    }));
 
     let tile_size = TilemapTileSize {
         x: SPRITE_SIZE as f32,
@@ -262,94 +247,13 @@ fn create_world(
         ..Default::default()
     });
 
-    commands.spawn(PathfindingRefs { aStar });
-
     next_state.set(AppState::InGame);
 }
 
-fn addAstarNeighbors(
-    mut commands: Commands,
-    query: Query<(Entity, &mut TilePos, &mut AstarId), With<NeedsAstarNeighbors>>,
-    mut astarQuery: Query<&mut PathfindingRefs>,
-    tileStorageQuery: Query<&TileStorage>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-) {
-    if query.iter().len() == 0 {
-        return;
-    }
-    let all_tiles = &query.iter().collect::<Vec<_>>();
-
-    let aStar = &mut astarQuery.get_single_mut().unwrap().aStar;
-
-    let edges_mutex = Mutex::new(vec![]);
-
-    let map_size = TilemapSize {
-        x: WORLD_SIZE_X as u32,
-        y: WORLD_SIZE_Y as u32,
-    };
-
-    let tile_storage = tileStorageQuery.get_single().unwrap();
-
-    query.par_iter().for_each(|(entity, tile_pos, astar_id)| {
-        for neighbor in
-        Neighbors::get_square_neighboring_positions(&tile_pos, &map_size, true).iter()
-        {
-            let neighbor_entity = tile_storage.get(&neighbor);
-
-            let neighbor_entity = query.get(neighbor_entity.unwrap()).unwrap();
-
-            edges_mutex.lock().unwrap().push((astar_id.id, neighbor_entity.2.id, 1, entity));
-        }
-    });
-
-    for edge in edges_mutex.lock().unwrap().iter() {
-        aStar.add_edge(edge.0, edge.1, edge.2);
-        commands.entity(edge.3).remove::<NeedsAstarNeighbors>();
-    }
-
-    let aStar = &astarQuery.get_single_mut().unwrap().aStar;
-
-    let now = std::time::Instant::now();
-
-    let path = astar(
-        &aStar,
-        query.iter().nth(0).unwrap().2.id,
-        |finish| finish == query.iter().nth(query.iter().len() - 1).unwrap().2.id,
-        |e| *e.weight(),
-        |_| 0,
-    );
-
-    let elapsed_time = now.elapsed();
-    println!("Getting a* path took {} ms.", elapsed_time.as_millis());
-
-    for step in path.unwrap().1.iter() {
-        let pos = all_tiles.par_iter().find_any(|(a, b, c)| &c.id == step);
-
-        commands.spawn(MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 10.0 })),
-            material: materials.add(Color::rgb(0., 1., 1.)),
-            transform: Transform {
-                translation: Vec3::new(
-                    pos.unwrap().1.x as f32 * SPRITE_SIZE as f32 - (tile_storage.size.x * SPRITE_SIZE as u32) as f32 / 2.,
-                    pos.unwrap().1.y as f32 * SPRITE_SIZE as f32 - (tile_storage.size.y * SPRITE_SIZE as u32) as f32 / 2.,
-                    100.0,
-                ),
-                rotation: Default::default(),
-                scale: Vec3::splat(1.0),
-            },
-            global_transform: Default::default(),
-            visibility: Default::default(),
-            inherited_visibility: Default::default(),
-            view_visibility: Default::default(),
-        });
-    }
-}
 
 impl Plugin for WorldGenPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Growth>()
-            .add_systems(OnEnter(AppState::CreateWorld), create_world)
-            .add_systems(Update, addAstarNeighbors.run_if(in_state(InGame)));
+            .add_systems(OnEnter(AppState::CreateWorld), create_world);
     }
 }

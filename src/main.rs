@@ -8,6 +8,7 @@ use bevy_pancam::{PanCam, PanCamPlugin};
 use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin};
 
 use crate::character_plugin::CharacterPlugin;
+use crate::debug_plugin::DebugPlugin;
 use crate::growth_plugin::PlanGrowthPlugin;
 use crate::name_plugin::NamePlugin;
 use crate::task_scorer::TaskScoringPlugin;
@@ -25,6 +26,7 @@ mod tasks;
 mod wander_plugin;
 mod world_gen_plugin;
 mod debug_plugin;
+mod pathing;
 
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
@@ -117,7 +119,7 @@ fn main() {
             //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
-        //.add_plugins(DebugPlugin)
+        .add_plugins(DebugPlugin)
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Loading), load_textures)
         .add_systems(Update, check_textures.run_if(in_state(AppState::Loading)))
