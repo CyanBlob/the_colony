@@ -4,15 +4,12 @@ use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
 use rand::{thread_rng, Rng};
 
-use crate::name_plugin::{Name, NeedsName};
+use crate::name_plugin::{NeedsName};
 use crate::tasks::*;
 use crate::{AppState, CharacterFolder};
 
 #[derive(Component)]
 pub struct Character;
-
-#[derive(Resource)]
-struct TickTimer(Timer);
 
 #[derive(Bundle)]
 struct PlayerBundle {
@@ -144,18 +141,8 @@ fn add_people(
     }*/
 }
 
-fn tick_pop(query: Query<(&Character, &Name), Changed<Name>>) {
-    // update our timer with the time elapsed since the last update
-    // if that caused the timer to finish, we say hello to everyone
-    for (_, name) in &query {
-        //println!("Hello: {}!", name.0);
-    }
-}
-
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(TickTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
-            .add_systems(OnExit(AppState::Loading), add_people)
-            .add_systems(Update, tick_pop.run_if(in_state(AppState::CreateWorld)));
+            app.add_systems(OnExit(AppState::Loading), add_people);
     }
 }

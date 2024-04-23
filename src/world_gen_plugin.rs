@@ -1,19 +1,10 @@
-use std::sync::Mutex;
-
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
-use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-//use bevy::utils::petgrpub apub ph::{Graph, Undirected};
-use bevy::utils::petgraph::{Graph, Undirected};
-use bevy::utils::petgraph::prelude::NodeIndex;
 use bevy_ecs_tilemap::prelude::*;
 use rand::prelude::*;
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-
 use crate::{AppState, TerrainFolder};
-use crate::AppState::InGame;
 use crate::growth_plugin::Growth;
 use crate::pathing::{PathPositions, Pos};
 
@@ -21,16 +12,9 @@ pub const SPRITE_SIZE: i32 = 32;
 pub const WORLD_SIZE_X: i32 = 256;
 pub const WORLD_SIZE_Y: i32 = 256;
 
+#[allow(unused)]
 #[derive(Component)]
 pub struct Terrain;
-
-#[derive(Component)]
-pub struct AstarId {
-    id: NodeIndex,
-}
-
-#[derive(Component)]
-pub struct NeedsAstarNeighbors;
 
 pub struct WorldGenPlugin;
 
@@ -66,37 +50,11 @@ pub(crate) fn create_texture_atlas(
     (texture_atlas_layout, texture)
 }
 
-/// Create and spawn a sprite from a texture atlas
-fn create_sprite_from_atlas(
-    commands: &mut Commands,
-    translation: (f32, f32, f32),
-    sprite_index: usize,
-    atlas_handle: Handle<TextureAtlasLayout>,
-    texture: Handle<Image>,
-) {
-    commands.spawn((
-        SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(translation.0, translation.1, translation.2),
-                scale: Vec3::splat(1.0),
-                ..default()
-            },
-            texture,
-            ..default()
-        },
-        TextureAtlas {
-            layout: atlas_handle,
-            index: sprite_index,
-        },
-    ));
-}
-
 fn create_world(
     mut commands: Commands,
     //image_assets: Res<MyAssets>,
     terrain_sprites_handles: Res<TerrainFolder>,
     asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     loaded_folders: Res<Assets<LoadedFolder>>,
     mut textures: ResMut<Assets<Image>>,
     mut next_state: ResMut<NextState<AppState>>,
@@ -112,7 +70,7 @@ fn create_world(
         Some(ImageSampler::nearest()),
         &mut textures,
     );
-    let atlas_linear_handle = texture_atlases.add(texture_atlas_linear.clone());
+    //let atlas_linear_handle = texture_atlases.add(texture_atlas_linear.clone());
 
     let ugly_grass: Handle<Image> = asset_server.get_handle("terrain/ugly_grass.png").unwrap();
     let ugly_grass_index = texture_atlas_linear.get_texture_index(&ugly_grass).unwrap();
@@ -144,10 +102,10 @@ fn create_world(
     let ugly_mud4: Handle<Image> = asset_server.get_handle("terrain/ugly_mud4.png").unwrap();
     let ugly_mud4_index = texture_atlas_linear.get_texture_index(&ugly_mud4).unwrap();
 
-    let ugly_flower: Handle<Image> = asset_server.get_handle("terrain/ugly_flower.png").unwrap();
-    let ugly_flower_index = texture_atlas_linear
+    //let ugly_flower: Handle<Image> = asset_server.get_handle("terrain/ugly_flower.png").unwrap();
+    /*let ugly_flower_index = texture_atlas_linear
         .get_texture_index(&ugly_flower)
-        .unwrap();
+        .unwrap();*/
 
     // includes grass duplicates to encourage grass growth
     let terrain_textures = vec![
@@ -223,11 +181,11 @@ fn create_world(
         }
     }
 
-    commands.spawn((PathPositions {
+    commands.spawn(PathPositions {
         positions: positions,
         abs_positions: absolute_positions,
         tile_positions: tile_positions
-    }));
+    });
 
     let tile_size = TilemapTileSize {
         x: SPRITE_SIZE as f32,

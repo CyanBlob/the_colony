@@ -28,6 +28,7 @@ mod world_gen_plugin;
 mod debug_plugin;
 mod pathing;
 
+#[allow(unused)]
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
     #[default]
@@ -50,6 +51,7 @@ fn load_textures(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(TerrainFolder(asset_server.load_folder("terrain")));
 }
 
+#[allow(unused)]
 fn check_textures(
     mut next_state: ResMut<NextState<AppState>>,
     terrain_sprite_folder: Res<TerrainFolder>,
@@ -65,6 +67,7 @@ fn check_textures(
     }
 }
 
+#[allow(unused)]
 #[derive(AssetCollection, Resource)]
 struct MyAssets {
     #[asset(path = "terrain/ugly_grass.png")]

@@ -5,16 +5,15 @@ use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_ecs_tilemap::prelude::TileStorage;
 use crate::AppState;
 
-use crate::AppState::InGame;
 use crate::character_plugin::Character;
 use crate::pathing::Pos;
 
 pub struct DebugPlugin;
 
-fn debugCharacterPos(
+#[allow(unused)]
+fn debug_character_pos(
     mut commands: Commands,
     query: Query<&Transform, With<Character>>,
-    tileStorageQuery: Query<&TileStorage>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
@@ -76,7 +75,7 @@ fn visualize_astar(
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-       //app.add_systems(Update, debugCharacterPos.run_if(in_state(InGame)));
+       //app.add_systems(Update, debug_character_pos.run_if(in_state(InGame)));
         app.add_systems(OnEnter(AppState::InGame), visualize_astar);
     }
 }

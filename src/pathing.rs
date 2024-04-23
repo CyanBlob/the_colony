@@ -1,12 +1,12 @@
 use bevy::math::Vec3;
-use pathfinding::prelude::astar;
-use bevy::prelude::{Component, Transform};
+use bevy::prelude::{Component};
 use bevy_ecs_tilemap::tiles::TilePos;
 use rand::prelude::*;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Component)]
 pub struct Pos(pub i32, pub i32);
 
+#[allow(unused)]
 #[derive(Component)]
 pub struct PathPositions {
     pub positions: Vec::<Pos>,
@@ -27,6 +27,7 @@ impl Pos {
             .into_iter().map(|p| (p, rand.gen_range(0..255))).collect()
     }
 
+    #[allow(unused)]
     pub fn translation(&self) -> Vec3 {
         Vec3 {
             x: self.0 as f32,

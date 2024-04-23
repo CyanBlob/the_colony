@@ -17,7 +17,6 @@ pub struct Busy;
 
 fn score_basic_tasks(
     mut commands: Commands,
-    time: Res<Time>,
     mut query: Query<(Entity, &Name, &mut AllTasks, &Thirst, &Hunger, &Sleep), Without<Busy>>,
 ) {
     for (entity, name, mut task, thirst, hunger, sleep) in query.iter_mut() {
@@ -44,16 +43,19 @@ fn score_basic_tasks(
     }
 }
 
+#[allow(unused)]
 fn begin_eat(mut commands: Commands, query: Query<Entity, Added<Enum!(AllTasks::Eat)>>) {
     for entity in &query {
         commands.entity(entity).insert(Busy);
     }
 }
 
+#[allow(unused)]
 fn check_wander(query: Query<Entity, (With<Character>, With<Enum!(AllTasks::Wander)>)>) {
     println!("Wandering");
 }
 
+#[allow(unused)]
 fn check_task(query: Query<(Entity, &AllTasks), With<Character>>) {
     //println!("TASKS:");
     //for (_, _, task) in &query {
