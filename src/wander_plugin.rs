@@ -7,6 +7,8 @@ use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
 use bevy_enum_filter::prelude::*;
 use rand::{thread_rng, Rng};
+use crate::pathing::Pos;
+use crate::world_gen_plugin::SPRITE_SIZE;
 
 pub struct RandomMovementPlugin;
 
@@ -15,6 +17,16 @@ struct ChangeDirTimer(Timer);
 
 #[derive(Component)]
 pub struct Wandering;
+
+#[derive(Component)]
+pub struct NeedsPath {
+    pos: Pos
+}
+
+#[derive(Component)]
+pub struct Path {
+    path: (Vec::<Pos>, u32)
+}
 
 #[derive(Component, Default)]
 pub struct RandomDirection {
@@ -41,14 +53,62 @@ fn wander(
 
 fn move_randomly(
     time: Res<Time>,
+    mut commands: Commands,
     mut query: Query<
-        (&mut Transform, &RandomDirection),
+        (Entity, &mut Transform, &RandomDirection),
+        (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
+    >,
+) {
+    let mut rand = thread_rng();
+    for (entity, mut transform, dir) in query.iter_mut() {
+
+        let start = Pos(transform.translation.x as i32, transform.translation.y as i32);
+        let goal = Pos(rand.gen_range(0..255), rand.gen_range(0..255));
+
+        let now = std::time::Instant::now();
+        let path = pathfinding::prelude::astar(
+            &start,
+            |p| p.successors(),
+            |p| p.distance(&goal) / 3,
+            |p| *p == goal,
+        );
+        let elapsed_time = now.elapsed();
+        println!("Getting a* path took {} ms.", elapsed_time.as_millis());
+        commands.entity(entity).insert(Path {path: path.unwrap()});
+    }
+}
+
+fn follow_path(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut query: Query<
+        (Entity, &mut Transform, &mut Path),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>),
     >,
 ) {
-    for (mut transform, dir) in query.iter_mut() {
-        transform.translation.x += time.delta_seconds() * dir.dir.x * 5.0;
-        transform.translation.y += time.delta_seconds() * dir.dir.y * 5.0;
+    for (entity, mut transform, mut path) in query.iter_mut() {
+        let mut next_pos = Vec3::new(path.path.0.iter().nth(0).unwrap().0 as f32 * 1 as f32, path.path.0.iter().nth(0).unwrap().1 as f32 * 1 as f32, transform.translation.z);
+
+        if transform.translation.distance(next_pos) < 16.0 {
+            //println!("Old target: {:?}", next_pos);
+            // TODO: this is bad for performance since it shifts the full vec
+            path.path.0.remove(0);
+
+            if path.path.0.len() == 0 {
+                println!("Done pathing");
+                commands.entity(entity).remove::<Path>();
+                continue;
+            }
+            next_pos = Vec3::new(path.path.0.iter().nth(0).unwrap().0 as f32 * 1 as f32, path.path.0.iter().nth(0).unwrap().1 as f32 * 1 as f32, transform.translation.z);
+            //println!("New target: {:?}", next_pos);
+        }
+
+        let mut dir = next_pos - transform.translation;
+        if let Some(d) = dir.try_normalize() {
+           dir = d;
+        }
+        transform.translation.x += time.delta_seconds() * dir.x * 100.0;
+        transform.translation.y += time.delta_seconds() * dir.y * 100.0;
     }
 }
 
@@ -81,6 +141,7 @@ impl Plugin for RandomMovementPlugin {
             .add_systems(OnExit(Loading), update_random_dir_without_tick)
             .add_systems(Update, wander.run_if(in_state(AppState::InGame)))
             .add_systems(Update, move_randomly.run_if(in_state(AppState::InGame)))
-            .add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
+            .add_systems(Update, follow_path.run_if(in_state(AppState::InGame)));
+            //.add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
     }
 }
