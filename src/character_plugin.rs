@@ -2,11 +2,11 @@ use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 
+use crate::{AppState, CharacterFolder};
 use crate::name_plugin::NeedsName;
 use crate::tasks::*;
-use crate::{AppState, CharacterFolder};
 
 #[derive(Component)]
 pub struct Character;

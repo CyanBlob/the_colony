@@ -1,14 +1,16 @@
-use crate::character_plugin::Character;
-use crate::tasks::*;
-use crate::AppState;
-use crate::AppState::Loading;
+use std::sync::Mutex;
+
 use bevy::app::App;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
 use bevy_enum_filter::prelude::*;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
+
+use crate::AppState;
+use crate::AppState::Loading;
+use crate::character_plugin::Character;
 use crate::pathing::Pos;
-use crate::world_gen_plugin::SPRITE_SIZE;
+use crate::tasks::*;
 
 pub struct RandomMovementPlugin;
 
@@ -20,12 +22,12 @@ pub struct Wandering;
 
 #[derive(Component)]
 pub struct NeedsPath {
-    pos: Pos
+    pos: Pos,
 }
 
 #[derive(Component)]
 pub struct Path {
-    path: (Vec::<Pos>, u32)
+    path: (Vec::<Pos>, u32),
 }
 
 #[derive(Component, Default)]
@@ -59,22 +61,35 @@ fn move_randomly(
         (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
     >,
 ) {
-    let mut rand = thread_rng();
-    for (entity, mut transform, dir) in query.iter_mut() {
+    let mut paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
+
+    let now = std::time::Instant::now();
+    query.par_iter().for_each(|(entity, mut transform, dir)| {
+        let mut rand = thread_rng();
 
         let start = Pos(transform.translation.x as i32, transform.translation.y as i32);
         let goal = Pos(rand.gen_range(0..255), rand.gen_range(0..255));
 
-        let now = std::time::Instant::now();
+        //let now = std::time::Instant::now();
         let path = pathfinding::prelude::astar(
             &start,
             |p| p.successors(),
             |p| p.distance(&goal) / 3,
             |p| *p == goal,
         );
-        let elapsed_time = now.elapsed();
-        println!("Getting a* path took {} ms.", elapsed_time.as_millis());
-        commands.entity(entity).insert(Path {path: path.unwrap()});
+        //let elapsed_time = now.elapsed();
+        //println!("Getting a* path took {} ms.", elapsed_time.as_millis());
+
+        paths.lock().unwrap().push((entity, Path { path: path.unwrap() }));
+    });
+
+    for (entity, path) in paths.lock().unwrap().iter() {
+        //commands.entity(Entity)
+        commands.entity(*entity).insert(Path { path: path.path.clone() });
+    }
+    let elapsed_time = now.elapsed();
+    if elapsed_time.as_millis() > 0 {
+        println!("Adding a* paths took {} ms.", elapsed_time.as_millis());
     }
 }
 
@@ -105,7 +120,7 @@ fn follow_path(
 
         let mut dir = next_pos - transform.translation;
         if let Some(d) = dir.try_normalize() {
-           dir = d;
+            dir = d;
         }
         transform.translation.x += time.delta_seconds() * dir.x * 100.0;
         transform.translation.y += time.delta_seconds() * dir.y * 100.0;
@@ -142,6 +157,6 @@ impl Plugin for RandomMovementPlugin {
             .add_systems(Update, wander.run_if(in_state(AppState::InGame)))
             .add_systems(Update, move_randomly.run_if(in_state(AppState::InGame)))
             .add_systems(Update, follow_path.run_if(in_state(AppState::InGame)));
-            //.add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
+        //.add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
     }
 }
