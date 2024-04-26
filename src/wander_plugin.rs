@@ -3,6 +3,7 @@ use std::sync::Mutex;
 use bevy::app::App;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
+use bevy_ecs_tilemap::prelude::TileStorage;
 use bevy_enum_filter::prelude::*;
 use rand::{Rng, thread_rng};
 
@@ -11,6 +12,7 @@ use crate::AppState::Loading;
 use crate::character_plugin::Character;
 use crate::pathing::Pos;
 use crate::tasks::*;
+use crate::world_gen_plugin::SPRITE_SIZE;
 
 pub struct RandomMovementPlugin;
 
@@ -46,7 +48,7 @@ fn wander(
         ),
     >,
 ) {
-    for entity in &query {
+    for (entity) in query.iter() {
         commands
             .entity(entity)
             .insert((Wandering, RandomDirection::default()));
@@ -54,77 +56,83 @@ fn wander(
 }
 
 fn move_randomly(
-    time: Res<Time>,
     mut commands: Commands,
     mut query: Query<
-        (Entity, &mut Transform, &RandomDirection),
+        (Entity, &Transform),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
     >,
 ) {
     let mut paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
 
-    let now = std::time::Instant::now();
-    query.par_iter().for_each(|(entity, mut transform, dir)| {
+    //let now = std::time::Instant::now();
+    query.par_iter().for_each(|(entity, transform)| {
         let mut rand = thread_rng();
 
-        let start = Pos(transform.translation.x as i32, transform.translation.y as i32);
-        let goal = Pos(rand.gen_range(0..255), rand.gen_range(0..255));
+        let start = Pos(transform.translation.x as i32 / 32, transform.translation.y as i32 / 32);
+        let goal = Pos(rand.gen_range(-127..127), rand.gen_range(-127..127));
 
-        //let now = std::time::Instant::now();
         let path = pathfinding::prelude::astar(
             &start,
             |p| p.successors(),
             |p| p.distance(&goal) / 3,
             |p| *p == goal,
-        );
-        //let elapsed_time = now.elapsed();
-        //println!("Getting a* path took {} ms.", elapsed_time.as_millis());
-
-        paths.lock().unwrap().push((entity, Path { path: path.unwrap() }));
+        ).unwrap();
+        paths.lock().unwrap().push((entity, Path { path: path }));
     });
 
     for (entity, path) in paths.lock().unwrap().iter() {
-        //commands.entity(Entity)
         commands.entity(*entity).insert(Path { path: path.path.clone() });
     }
-    let elapsed_time = now.elapsed();
-    if elapsed_time.as_millis() > 0 {
+    //let elapsed_time = now.elapsed();
+    /*if elapsed_time.as_millis() > 0 {
         println!("Adding a* paths took {} ms.", elapsed_time.as_millis());
-    }
+    }*/
 }
 
 fn follow_path(
     time: Res<Time>,
-    mut commands: Commands,
+    commands: Commands,
     mut query: Query<
         (Entity, &mut Transform, &mut Path),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>),
     >,
+    tile_storage_query: Query<&TileStorage>,
 ) {
-    for (entity, mut transform, mut path) in query.iter_mut() {
-        let mut next_pos = Vec3::new(path.path.0.iter().nth(0).unwrap().0 as f32 * 1 as f32, path.path.0.iter().nth(0).unwrap().1 as f32 * 1 as f32, transform.translation.z);
+    let commands = Mutex::new(commands);
+    let tile_storage = tile_storage_query.get_single().unwrap();
 
-        if transform.translation.distance(next_pos) < 16.0 {
+    query.par_iter_mut().for_each(|(entity, mut transform, mut path)| {
+        let mut next_pos = Vec3::new(
+            path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (0) as f32 / 2.0,
+            path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (0) as f32 / 2.0,
+            transform.translation.z,
+        );
+
+
+        if transform.translation.distance(next_pos) < 32.0 {
             //println!("Old target: {:?}", next_pos);
             // TODO: this is bad for performance since it shifts the full vec
             path.path.0.remove(0);
 
             if path.path.0.len() == 0 {
-                println!("Done pathing");
-                commands.entity(entity).remove::<Path>();
-                continue;
+                commands.lock().unwrap().entity(entity).remove::<Path>();
+                return;
             }
-            next_pos = Vec3::new(path.path.0.iter().nth(0).unwrap().0 as f32 * 1 as f32, path.path.0.iter().nth(0).unwrap().1 as f32 * 1 as f32, transform.translation.z);
-            //println!("New target: {:?}", next_pos);
+            //next_pos = Vec3::new(path.path.0.iter().nth(0).unwrap().0 as f32 * 1 as f32, path.path.0.iter().nth(0).unwrap().1 as f32 * 1 as f32, transform.translation.z);
+            let mut next_pos = Vec3::new(
+                path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.x * SPRITE_SIZE as u32) as f32 / 2.0,
+                path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.y * SPRITE_SIZE as u32) as f32 / 2.0,
+                transform.translation.z,
+            );
         }
 
         let mut dir = next_pos - transform.translation;
         if let Some(d) = dir.try_normalize() {
             dir = d;
         }
-        transform.translation.x += time.delta_seconds() * dir.x * 100.0;
-        transform.translation.y += time.delta_seconds() * dir.y * 100.0;
-    }
+        transform.translation.x += time.delta_seconds() * dir.x * 200.0;
+        transform.translation.y += time.delta_seconds() * dir.y * 200.0;
+    });
 }
 
 fn update_random_dir(

@@ -47,16 +47,19 @@ fn add_people(
     let character_index = texture_atlas_linear.get_texture_index(&character).unwrap();
 
     for _ in 0..10 {
+        let transform = Transform::from_xyz(
+            rand.gen_range(-1000.0..1000.0),
+            rand.gen_range(-640.0..640.0),
+            100.0,
+        );
+
+        //println!("Spawning at: {:?}", transform);
         commands
             .spawn((
                 PlayerBundle {
                     sprite: SpriteBundle {
                         texture: linear_texture.clone(),
-                        transform: Transform::from_xyz(
-                            rand.gen_range(-1000.0..1000.0),
-                            rand.gen_range(-640.0..640.0),
-                            100.0,
-                        ),
+                        transform: transform,
                         ..default()
                     },
                     character: Character,
