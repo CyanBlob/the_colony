@@ -57,14 +57,13 @@ fn wander(
 
 fn move_randomly(
     mut commands: Commands,
-    mut query: Query<
+    query: Query<
         (Entity, &Transform),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
     >,
 ) {
     let mut paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
 
-    //let now = std::time::Instant::now();
     query.par_iter().for_each(|(entity, transform)| {
         let mut rand = thread_rng();
 
@@ -83,10 +82,6 @@ fn move_randomly(
     for (entity, path) in paths.lock().unwrap().iter() {
         commands.entity(*entity).insert(Path { path: path.path.clone() });
     }
-    //let elapsed_time = now.elapsed();
-    /*if elapsed_time.as_millis() > 0 {
-        println!("Adding a* paths took {} ms.", elapsed_time.as_millis());
-    }*/
 }
 
 fn follow_path(
@@ -118,8 +113,7 @@ fn follow_path(
                 commands.lock().unwrap().entity(entity).remove::<Path>();
                 return;
             }
-            //next_pos = Vec3::new(path.path.0.iter().nth(0).unwrap().0 as f32 * 1 as f32, path.path.0.iter().nth(0).unwrap().1 as f32 * 1 as f32, transform.translation.z);
-            let mut next_pos = Vec3::new(
+            next_pos = Vec3::new(
                 path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.x * SPRITE_SIZE as u32) as f32 / 2.0,
                 path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.y * SPRITE_SIZE as u32) as f32 / 2.0,
                 transform.translation.z,
@@ -165,6 +159,5 @@ impl Plugin for RandomMovementPlugin {
             .add_systems(Update, wander.run_if(in_state(AppState::InGame)))
             .add_systems(Update, move_randomly.run_if(in_state(AppState::InGame)))
             .add_systems(Update, follow_path.run_if(in_state(AppState::InGame)));
-        //.add_systems(Update, update_random_dir.run_if(in_state(AppState::InGame)));
     }
 }

@@ -1,17 +1,8 @@
 use bevy::math::Vec3;
 use bevy::prelude::Component;
-use bevy_ecs_tilemap::tiles::TilePos;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Component)]
 pub struct Pos(pub i32, pub i32);
-
-#[allow(unused)]
-#[derive(Component)]
-pub struct PathPositions {
-    pub positions: Vec<Pos>,
-    pub abs_positions: Vec<(i32, i32)>,
-    pub tile_positions: Vec<TilePos>,
-}
 
 impl Pos {
     pub fn distance(&self, other: &Pos) -> u32 {
@@ -26,14 +17,10 @@ impl Pos {
             Pos(x - 1, y + 0),
             Pos(x + 0, y + 1),
             Pos(x + 0, y - 1),
-            /*Pos(x + 1, y + 2),
-            Pos(x + 1, y - 2),
-            Pos(x - 1, y + 2),
-            Pos(x - 1, y - 2),
-            Pos(x + 2, y + 1),
-            Pos(x + 2, y - 1),
-            Pos(x - 2, y + 1),
-            Pos(x - 2, y - 1),*/
+            Pos(x + 1, y + 1),
+            Pos(x + 1, y - 1),
+            Pos(x - 1, y + 1),
+            Pos(x - 1, y - 1),
         ]
             .into_iter()
             //.map(|p| (p, rand.gen_range(0..255)))

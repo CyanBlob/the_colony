@@ -1,6 +1,3 @@
-use crate::growth_plugin::Growth;
-use crate::pathing::{PathPositions, Pos};
-use crate::{AppState, TerrainFolder};
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
@@ -8,9 +5,13 @@ use bevy::render::texture::ImageSampler;
 use bevy_ecs_tilemap::prelude::*;
 use rand::prelude::*;
 
+use crate::{AppState, TerrainFolder};
+use crate::growth_plugin::Growth;
+use crate::pathing::Pos;
+
 pub const SPRITE_SIZE: i32 = 32;
-pub const WORLD_SIZE_X: i32 = 256;
-pub const WORLD_SIZE_Y: i32 = 256;
+pub const WORLD_SIZE_X: i32 = 2048;
+pub const WORLD_SIZE_Y: i32 = 2048;
 
 #[allow(unused)]
 #[derive(Component)]
@@ -169,7 +170,7 @@ fn create_world(
                         terrain_textures[rand.gen_range(0..terrain_textures.len())] as u32,
                     ),
                     ..default()
-                },))
+                }, ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
 
@@ -181,12 +182,6 @@ fn create_world(
             tile_positions.push(tile_pos);
         }
     }
-
-    commands.spawn(PathPositions {
-        positions: positions,
-        abs_positions: absolute_positions,
-        tile_positions: tile_positions,
-    });
 
     let tile_size = TilemapTileSize {
         x: SPRITE_SIZE as f32,
