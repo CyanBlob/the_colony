@@ -13,7 +13,6 @@ impl Pos {
     }
 
     pub fn successors(&self, tile_weights: MutexGuard::<&HashMap::<Pos, i32>>) -> Vec<(Pos, u32)> {
-        //let mut rand = thread_rng();
         let &Pos(x, y) = self;
 
         vec![
@@ -27,7 +26,6 @@ impl Pos {
             Pos(x - 1, y - 1),
         ]
             .into_iter()
-            //.map(|p| (p, rand.gen_range(0..255)))
             .map(|p| {
                 let weight = tile_weights.get(&p).unwrap_or(&9999);
                 (p, weight.to_owned() as u32)

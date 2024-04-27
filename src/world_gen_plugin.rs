@@ -1,6 +1,6 @@
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
-use bevy::math::{uvec2, vec2, vec3};
+use bevy::math::{uvec2, vec2};
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
 use bevy::utils::HashMap;
