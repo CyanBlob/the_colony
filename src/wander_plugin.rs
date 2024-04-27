@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use bevy::app::App;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
-use bevy_ecs_tilemap::prelude::TileStorage;
+//use bevy_ecs_tilemap::prelude::TileStorage;
 use bevy_enum_filter::prelude::*;
 use rand::{Rng, thread_rng};
 
@@ -12,7 +12,7 @@ use crate::AppState::Loading;
 use crate::character_plugin::Character;
 use crate::pathing::Pos;
 use crate::tasks::*;
-use crate::world_gen_plugin::SPRITE_SIZE;
+use crate::world_gen_plugin::{SPRITE_SIZE, WORLD_SIZE_X, WORLD_SIZE_Y};
 
 pub struct RandomMovementPlugin;
 
@@ -91,10 +91,10 @@ fn follow_path(
         (Entity, &mut Transform, &mut Path),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>),
     >,
-    tile_storage_query: Query<&TileStorage>,
+    //tile_storage_query: Query<&TileStorage>,
 ) {
     let commands = Mutex::new(commands);
-    let tile_storage = tile_storage_query.get_single().unwrap();
+    //let tile_storage = tile_storage_query.get_single().unwrap();
 
     query.par_iter_mut().for_each(|(entity, mut transform, mut path)| {
         let mut next_pos = Vec3::new(
@@ -114,8 +114,8 @@ fn follow_path(
                 return;
             }
             next_pos = Vec3::new(
-                path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.x * SPRITE_SIZE as u32) as f32 / 2.0,
-                path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (tile_storage.size.y * SPRITE_SIZE as u32) as f32 / 2.0,
+                path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (WORLD_SIZE_X as u32 * SPRITE_SIZE as u32) as f32 / 2.0,
+                path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (WORLD_SIZE_Y as u32 * SPRITE_SIZE as u32) as f32 / 2.0,
                 transform.translation.z,
             );
         }

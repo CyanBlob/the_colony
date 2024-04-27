@@ -3,8 +3,9 @@ use bevy::prelude::*;
 use bevy::window::PresentMode;
 use bevy_asset_loader::prelude::AssetCollection;
 use bevy_debug_text_overlay::OverlayPlugin;
-use bevy_ecs_tilemap::TilemapPlugin;
+//use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_enum_filter::prelude::*;
+use bevy_fast_tilemap::FastTileMapPlugin;
 use bevy_framepace::{FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin};
@@ -127,11 +128,11 @@ fn main() {
             bevy::diagnostic::FrameTimeDiagnosticsPlugin,
             bevy::diagnostic::EntityCountDiagnosticsPlugin,
             bevy::diagnostic::SystemInformationDiagnosticsPlugin,
-            TilemapPlugin,
+            //TilemapPlugin,
             //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
-        .add_plugins((DebugPlugin, bevy_framepace::FramepacePlugin, PerfUiPlugin))
+        .add_plugins((DebugPlugin, bevy_framepace::FramepacePlugin, PerfUiPlugin, FastTileMapPlugin::default(), ))
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Loading), load_textures)
         .add_systems(Update, check_textures.run_if(in_state(AppState::Loading)))

@@ -1,8 +1,9 @@
 use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
+use bevy::math::{uvec2, vec2, vec3};
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
-use bevy_ecs_tilemap::prelude::*;
+use bevy_fast_tilemap::*;
 use rand::prelude::*;
 
 use crate::{AppState, TerrainFolder};
@@ -16,6 +17,9 @@ pub const WORLD_SIZE_Y: i32 = 2048;
 #[allow(unused)]
 #[derive(Component)]
 pub struct Terrain;
+
+#[derive(Component)]
+struct AnimationLayer;
 
 pub struct WorldGenPlugin;
 
@@ -57,8 +61,10 @@ fn create_world(
     terrain_sprites_handles: Res<TerrainFolder>,
     asset_server: Res<AssetServer>,
     loaded_folders: Res<Assets<LoadedFolder>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     mut textures: ResMut<Assets<Image>>,
     mut next_state: ResMut<NextState<AppState>>,
+    mut materials: ResMut<Assets<Map>>,
 ) {
     let mut rand = thread_rng();
 
@@ -71,7 +77,7 @@ fn create_world(
         Some(ImageSampler::nearest()),
         &mut textures,
     );
-    //let atlas_linear_handle = texture_atlases.add(texture_atlas_linear.clone());
+    let atlas_linear_handle = texture_atlases.add(texture_atlas_linear.clone());
 
     let ugly_grass: Handle<Image> = asset_server.get_handle("terrain/ugly_grass.png").unwrap();
     let ugly_grass_index = texture_atlas_linear.get_texture_index(&ugly_grass).unwrap();
@@ -136,27 +142,56 @@ fn create_world(
         ugly_mud4_index,
     ];
 
-    let map_size = TilemapSize {
-        x: WORLD_SIZE_X as u32,
-        y: WORLD_SIZE_Y as u32,
-    };
+    let map = Map::builder(
+        uvec2(4096, 4096),
+        linear_texture,
+        vec2(SPRITE_SIZE as f32, SPRITE_SIZE as f32),
+    )
+        .build_and_initialize(|m| {
+            // Initialize using a closure
+            for y in 0..m.size().y {
+                for x in 0..m.size().y {
+                    m.set(x, y, rand.gen_range(0..2) + rand.gen_range(0..2) + rand.gen_range(0..1) + rand.gen_range(0..1) + rand.gen_range(0..1) as u32);
+                }
+            }
+        });
+
+    commands.spawn(MapBundleManaged {
+        material: materials.add(map),
+        ..default()
+    });
+
+    /*let map = Map::builder(
+        uvec2(64, 64),
+        linear_texture,
+        vec2(16., 16.),
+    )
+        .build();*/
+
+    /*let bundle = MapBundleManaged {
+        material: materials.add(map),
+        transform: Transform::default().with_translation(vec3(0., 0., 1.)),
+        ..default()
+    };*/
+
+    //commands.spawn(bundle).insert(AnimationLayer);
 
     // Create a tilemap entity a little early.
     // We want this entity early because we need to tell each tile which tilemap entity
     // it is associated with. This is done with the TilemapId component on each tile.
     // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
     // will contain various necessary components, such as `TileStorage`.
-    let tilemap_entity = commands.spawn_empty().id();
+    //let tilemap_entity = commands.spawn_empty().id();
 
     // To begin creating the map we will need a `TileStorage` component.
     // This component is a grid of tile entities and is used to help keep track of individual
     // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
     // per layer, each with their own `TileStorage` component.
-    let mut tile_storage = TileStorage::empty(map_size);
+    //let mut tile_storage = TileStorage::empty(map_size);
 
     // Spawn the elements of the tilemap.
     // Alternatively, you can use helpers::filling::fill_tilemap.
-    let mut positions = vec![];
+    /*let mut positions = vec![];
     let mut absolute_positions = vec![];
     let mut tile_positions = vec![];
     for x in 0..map_size.x {
@@ -199,7 +234,7 @@ fn create_world(
         tile_size,
         transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
-    });
+    });*/
 
     next_state.set(AppState::InGame);
 }

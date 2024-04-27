@@ -1,12 +1,10 @@
-use crate::world_gen_plugin::SPRITE_SIZE;
-use crate::AppState;
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-use bevy_ecs_tilemap::prelude::TileStorage;
 
 use crate::character_plugin::Character;
-use crate::pathing::Pos;
+
+//use bevy_ecs_tilemap::prelude::TileStorage;
 
 pub struct DebugPlugin;
 
@@ -34,7 +32,8 @@ fn debug_character_pos(
         });
     }
 }
-fn visualize_astar(
+
+/*fn visualize_astar(
     mut commands: Commands,
     tile_storage_query: Query<&TileStorage>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -76,11 +75,11 @@ fn visualize_astar(
             view_visibility: Default::default(),
         });
     }
-}
+}*/
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
         //app.add_systems(Update, debug_character_pos.run_if(in_state(InGame)));
-        app.add_systems(OnEnter(AppState::InGame), visualize_astar);
+        //app.add_systems(OnEnter(AppState::InGame), visualize_astar);
     }
 }
