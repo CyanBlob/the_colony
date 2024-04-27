@@ -48,7 +48,7 @@ fn wander(
         ),
     >,
 ) {
-    for (entity) in query.iter() {
+    for entity in query.iter() {
         commands
             .entity(entity)
             .insert((Wandering, RandomDirection::default()));
@@ -62,7 +62,7 @@ fn move_randomly(
         (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
     >,
 ) {
-    let mut paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
+    let paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
 
     query.par_iter().for_each(|(entity, transform)| {
         let mut rand = thread_rng();
