@@ -3,16 +3,17 @@ use bevy::prelude::*;
 use bevy::window::PresentMode;
 use bevy_asset_loader::prelude::AssetCollection;
 use bevy_debug_text_overlay::OverlayPlugin;
-//use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_enum_filter::prelude::*;
 use bevy_fast_tilemap::FastTileMapPlugin;
 use bevy_framepace::{FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin};
+use leafwing_input_manager::Actionlike;
 
 use crate::character_plugin::CharacterPlugin;
 use crate::debug_plugin::DebugPlugin;
 use crate::growth_plugin::PlanGrowthPlugin;
+use crate::input_plugin::InputPlugin;
 use crate::name_plugin::NamePlugin;
 use crate::task_scorer::TaskScoringPlugin;
 use crate::tasks::{AllTasks, BasicTasksPlugin};
@@ -30,6 +31,7 @@ mod task_scorer;
 mod tasks;
 mod wander_plugin;
 mod world_gen_plugin;
+mod input_plugin;
 
 #[allow(unused)]
 #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash)]
@@ -41,6 +43,7 @@ enum AppState {
     InGame,
     Paused,
 }
+
 
 #[derive(Resource, Default)]
 struct TerrainFolder(Handle<LoadedFolder>);
@@ -132,6 +135,7 @@ fn main() {
             //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
+        .add_plugins((InputPlugin))
         .add_plugins((DebugPlugin, bevy_framepace::FramepacePlugin, PerfUiPlugin, FastTileMapPlugin::default(), ))
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Loading), load_textures)
@@ -150,6 +154,7 @@ fn setup(mut commands: Commands, mut framepace: ResMut<FramepaceSettings>) {
     framepace.limiter = Limiter::Off;
 
     commands.spawn(PerfUiCompleteBundle::default());
+
     /*commands.spawn((
         PerfUiRoot::default(),
         PerfUiEntryFPS::default(),

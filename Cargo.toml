@@ -23,6 +23,7 @@ bevy_fast_tilemap = "0.7.3"
 rayon = "1.10.0"
 pathfinding = "4.9.1"
 bevy_framepace = "0.15.0"
+leafwing-input-manager = "0.13.3"
 #bevy_enum_filter = "0.3.0"
 
 # for converting enums to strings
