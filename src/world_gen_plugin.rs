@@ -3,6 +3,7 @@ use bevy::asset::LoadedFolder;
 use bevy::math::{uvec2, vec2, vec3};
 use bevy::prelude::*;
 use bevy::render::texture::ImageSampler;
+use bevy::utils::HashMap;
 use bevy_fast_tilemap::*;
 use rand::prelude::*;
 
@@ -11,15 +12,21 @@ use crate::growth_plugin::Growth;
 use crate::pathing::Pos;
 
 pub const SPRITE_SIZE: i32 = 32;
-pub const WORLD_SIZE_X: i32 = 2048;
-pub const WORLD_SIZE_Y: i32 = 2048;
+pub const WORLD_SIZE_X: i32 = 256;
+pub const WORLD_SIZE_Y: i32 = 256;
 
 #[allow(unused)]
 #[derive(Component)]
 pub struct Terrain;
 
+#[allow(unused)]
 #[derive(Component)]
 struct AnimationLayer;
+
+#[derive(Component)]
+pub struct TileWeights {
+    pub weights: HashMap::<Pos, i32>,
+}
 
 pub struct WorldGenPlugin;
 
@@ -142,8 +149,10 @@ fn create_world(
         ugly_mud4_index,
     ];
 
+    let mut hashmap = HashMap::new();
+
     let map = Map::builder(
-        uvec2(4096, 4096),
+        uvec2(WORLD_SIZE_X as u32, WORLD_SIZE_Y as u32),
         linear_texture,
         vec2(SPRITE_SIZE as f32, SPRITE_SIZE as f32),
     )
@@ -152,6 +161,8 @@ fn create_world(
             for y in 0..m.size().y {
                 for x in 0..m.size().y {
                     m.set(x, y, rand.gen_range(0..2) + rand.gen_range(0..2) + rand.gen_range(0..1) + rand.gen_range(0..1) + rand.gen_range(0..1) as u32);
+                    //hashmap.insert(Pos(x as i32, y as i32), rand.gen_range(1..255));
+                    hashmap.insert(Pos(x as i32, y as i32), 1);
                 }
             }
         });
@@ -160,6 +171,8 @@ fn create_world(
         material: materials.add(map),
         ..default()
     });
+
+    commands.spawn(TileWeights { weights: hashmap });
 
     /*let map = Map::builder(
         uvec2(64, 64),

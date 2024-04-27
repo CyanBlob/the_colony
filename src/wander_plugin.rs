@@ -12,7 +12,7 @@ use crate::AppState::Loading;
 use crate::character_plugin::Character;
 use crate::pathing::Pos;
 use crate::tasks::*;
-use crate::world_gen_plugin::{SPRITE_SIZE, WORLD_SIZE_X, WORLD_SIZE_Y};
+use crate::world_gen_plugin::{SPRITE_SIZE, TileWeights, WORLD_SIZE_X, WORLD_SIZE_Y};
 
 pub struct RandomMovementPlugin;
 
@@ -61,8 +61,12 @@ fn move_randomly(
         (Entity, &Transform),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
     >,
+    weights_query: Query<&TileWeights>,
 ) {
     let paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
+
+    let weights = &weights_query.get_single().unwrap().weights;
+    let weights = Mutex::new(weights);
 
     query.par_iter().for_each(|(entity, transform)| {
         let mut rand = thread_rng();
@@ -72,7 +76,7 @@ fn move_randomly(
 
         let path = pathfinding::prelude::astar(
             &start,
-            |p| p.successors(),
+            |p| p.successors(weights.lock().unwrap()),
             |p| p.distance(&goal) / 3,
             |p| *p == goal,
         ).unwrap();
