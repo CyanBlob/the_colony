@@ -10,6 +10,7 @@ use leafwing_input_manager::plugin::InputManagerPlugin;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::AppState::InGame;
+use crate::world_gen_plugin::SPRITE_SIZE;
 
 pub struct InputPlugin;
 
@@ -31,7 +32,6 @@ impl Plugin for InputPlugin {
             .init_resource::<MyWorldCoords>()
             .add_systems(Startup, setup)
             .add_systems(Update, my_cursor_system)
-            .add_systems(PreUpdate, my_cursor_system)
             .add_systems(Update, jump.run_if(in_state(InGame)));
     }
 }
@@ -78,10 +78,31 @@ fn jump(query: Query<&ActionState<Action>, With<GlobalInput>>,
     if action_state.just_pressed(&Action::Spawn) {
         let ugly_flower: Handle<Image> = asset_server.get_handle("terrain/ugly_flower.png").unwrap();
 
+        let sprite_size = SPRITE_SIZE as f32;
+
+        let x_offset = match cursor_pos.0.x {
+            x if x < 0.0 => { sprite_size / -2.0 }
+            x if x >= 0.0 => { sprite_size / 2.0 }
+            _ => { 0.0 }
+        };
+
+        let y_offset = match cursor_pos.0.y {
+            y if y < 0.0 => { sprite_size / -2.0 }
+            y if y >= 0.0 => { sprite_size / 2.0 }
+            _ => { 0.0 }
+        };
+
+        let cursor_x = (cursor_pos.0.x as i32 / SPRITE_SIZE) as f32 * sprite_size + x_offset;
+        let cursor_y = (cursor_pos.0.y as i32 / SPRITE_SIZE) as f32 * sprite_size + y_offset;
+
         commands.spawn(SpriteBundle {
             sprite: Default::default(),
             transform: Transform {
-                translation: Vec3::new(cursor_pos.0.x, cursor_pos.0.y, 500.0),
+                translation: Vec3::new(
+                    cursor_x,
+                    cursor_y,
+                    500.0,
+                ),
                 rotation: Default::default(),
                 scale: Vec3::splat(1.0),
             },
@@ -91,10 +112,6 @@ fn jump(query: Query<&ActionState<Action>, With<GlobalInput>>,
             inherited_visibility: Default::default(),
             view_visibility: Default::default(),
         });
-
-        println!("I'm spawning!");
     }
-    if action_state.just_pressed(&Action::Despawn) {
-        println!("I'm de-spawning!");
-    }
+    if action_state.just_pressed(&Action::Despawn) {}
 }
