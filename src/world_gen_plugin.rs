@@ -13,8 +13,8 @@ use crate::growth_plugin::Growth;
 use crate::pathing::Pos;
 
 pub const SPRITE_SIZE: i32 = 32;
-pub const WORLD_SIZE_X: i32 = 256;
-pub const WORLD_SIZE_Y: i32 = 256;
+pub const WORLD_SIZE_X: i32 = 512;
+pub const WORLD_SIZE_Y: i32 = 512;
 
 #[allow(unused)]
 #[derive(Component)]

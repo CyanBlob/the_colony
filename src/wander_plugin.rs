@@ -30,6 +30,7 @@ pub struct NeedsPath {
 #[derive(Component)]
 pub struct Path {
     path: (Vec::<Pos>, u32),
+    index: usize
 }
 
 #[derive(Component, Default)]
@@ -80,11 +81,11 @@ fn move_randomly(
             |p| p.distance(&goal) / 3,
             |p| *p == goal,
         ).unwrap();
-        paths.lock().unwrap().push((entity, Path { path: path }));
+        paths.lock().unwrap().push((entity, Path { path: path, index: 0 }));
     });
 
     for (entity, path) in paths.lock().unwrap().iter() {
-        commands.entity(*entity).insert(Path { path: path.path.clone() });
+        commands.entity(*entity).insert(Path { path: path.path.clone(), index: 0 });
     }
 }
 
@@ -95,30 +96,26 @@ fn follow_path(
         (Entity, &mut Transform, &mut Path),
         (With<Wandering>, With<Enum!(AllTasks::Wander)>),
     >,
-    //tile_storage_query: Query<&TileStorage>,
 ) {
     let commands = Mutex::new(commands);
-    //let tile_storage = tile_storage_query.get_single().unwrap();
 
     query.par_iter_mut().for_each(|(entity, mut transform, mut path)| {
         let mut next_pos = Vec3::new(
-            path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (0) as f32 / 2.0,
-            path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (0) as f32 / 2.0,
+            path.path.0.iter().nth(path.index).unwrap().0 as f32 * SPRITE_SIZE as f32 - (0) as f32 / 2.0,
+            path.path.0.iter().nth(path.index).unwrap().1 as f32 * SPRITE_SIZE as f32 - (0) as f32 / 2.0,
             transform.translation.z,
         );
 
 
         if transform.translation.distance(next_pos) < 32.0 {
-            //println!("Old target: {:?}", next_pos);
-            // TODO: this is bad for performance since it shifts the full vec
-            path.path.0.remove(0);
+            path.index += 1;
 
-            if path.path.0.len() == 0 {
+            if path.path.0.len() == path.index {
                 commands.lock().unwrap().entity(entity).remove::<Path>();
                 return;
             }
             next_pos = Vec3::new(
-                path.path.0.iter().nth(0).unwrap().0 as f32 * SPRITE_SIZE as f32 - (WORLD_SIZE_X as u32 * SPRITE_SIZE as u32) as f32 / 2.0,
+                path.path.0.iter().nth(path.index).unwrap().0 as f32 * SPRITE_SIZE as f32 - (WORLD_SIZE_X as u32 * SPRITE_SIZE as u32) as f32 / 2.0,
                 path.path.0.iter().nth(0).unwrap().1 as f32 * SPRITE_SIZE as f32 - (WORLD_SIZE_Y as u32 * SPRITE_SIZE as u32) as f32 / 2.0,
                 transform.translation.z,
             );
