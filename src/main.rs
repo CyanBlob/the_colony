@@ -49,18 +49,23 @@ enum AppState {
 struct TerrainFolder(Handle<LoadedFolder>);
 
 #[derive(Resource, Default)]
+struct PlantFolder(Handle<LoadedFolder>);
+
+#[derive(Resource, Default)]
 struct CharacterFolder(Handle<LoadedFolder>);
 
 fn load_textures(mut commands: Commands, asset_server: Res<AssetServer>) {
     // load multiple, individual sprites from a folder
     commands.insert_resource(CharacterFolder(asset_server.load_folder("characters")));
     commands.insert_resource(TerrainFolder(asset_server.load_folder("terrain")));
+    commands.insert_resource(PlantFolder(asset_server.load_folder("plants")));
 }
 
 #[allow(unused)]
 fn check_textures(
     mut next_state: ResMut<NextState<AppState>>,
     terrain_sprite_folder: Res<TerrainFolder>,
+    plant_sprite_folder: Res<PlantFolder>,
     character_folder: Res<CharacterFolder>,
     mut events: EventReader<AssetEvent<LoadedFolder>>,
 ) {
@@ -94,7 +99,7 @@ struct MyAssets {
     #[asset(path = "terrain/ugly_mud4.png")]
     ugly_mud4: Handle<Image>,
 
-    #[asset(path = "terrain/ugly_flower.png")]
+    #[asset(path = "plants/ugly_flower.png")]
     ugly_flower: Handle<Image>,
 
     #[asset(path = "characters/character.png")]

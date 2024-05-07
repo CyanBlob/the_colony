@@ -76,7 +76,7 @@ fn jump(query: Query<&ActionState<Action>, With<GlobalInput>>,
 
     // Each action has a button-like state of its own that you can check
     if action_state.just_pressed(&Action::Spawn) {
-        let ugly_flower: Handle<Image> = asset_server.get_handle("terrain/ugly_flower.png").unwrap();
+        let ugly_flower: Handle<Image> = asset_server.get_handle("plants/ugly_flower.png").unwrap();
 
         let sprite_size = SPRITE_SIZE as f32;
 
