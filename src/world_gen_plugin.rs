@@ -24,7 +24,7 @@ pub struct Terrain;
 #[derive(Component)]
 struct AnimationLayer;
 
-#[derive(Component)]
+#[derive(Resource)]
 pub struct TileWeights {
     pub weights: HashMap::<Pos, i32>,
 }
@@ -114,7 +114,7 @@ fn create_world(
         ..default()
     });
 
-    commands.spawn(TileWeights { weights: hashmap });
+    commands.insert_resource(TileWeights { weights: hashmap });
 
     next_state.set(AppState::InGame);
 }

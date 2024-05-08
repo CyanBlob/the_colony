@@ -1,7 +1,10 @@
 use std::sync::Mutex;
 
 use bevy::app::App;
+use bevy::ecs::system::CommandQueue;
 use bevy::prelude::*;
+use bevy::tasks::{AsyncComputeTaskPool, block_on, Task};
+use bevy::tasks::futures_lite::future;
 use bevy::time::TimerMode::Repeating;
 //use bevy_ecs_tilemap::prelude::TileStorage;
 use bevy_enum_filter::prelude::*;
@@ -30,13 +33,16 @@ pub struct NeedsPath {
 #[derive(Component)]
 pub struct Path {
     path: (Vec::<Pos>, u32),
-    index: usize
+    index: usize,
 }
 
 #[derive(Component, Default)]
 pub struct RandomDirection {
     dir: Vec2,
 }
+
+#[derive(Component)]
+struct ComputeTransform(Task<CommandQueue>);
 
 fn wander(
     mut commands: Commands,
@@ -59,33 +65,55 @@ fn wander(
 fn move_randomly(
     mut commands: Commands,
     query: Query<
-        (Entity, &Transform),
-        (With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
+        Entity,
+        (With<Transform>, With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
     >,
-    weights_query: Query<&TileWeights>,
 ) {
-    let paths: Mutex<Vec<(Entity, Path)>> = Mutex::new(vec![]);
+    let thread_pool = AsyncComputeTaskPool::get();
 
-    let weights = &weights_query.get_single().unwrap().weights;
-    let weights = Mutex::new(weights);
+    let entities = query.iter().collect::<Vec::<Entity>>();
 
-    query.par_iter().for_each(|(entity, transform)| {
-        let mut rand = thread_rng();
+    let task = thread_pool.spawn(async move {
+        if entities.len() > 0 {
+            println!("Entities: {:?}", entities);
+        }
 
-        let start = Pos(transform.translation.x as i32 / 32, transform.translation.y as i32 / 32);
-        let goal = Pos(rand.gen_range(-127..127), rand.gen_range(-127..127));
+        let mut command_queue = CommandQueue::default();
 
-        let path = pathfinding::prelude::astar(
-            &start,
-            |p| p.successors(weights.lock().unwrap()),
-            |p| p.distance(&goal) / 3,
-            |p| *p == goal,
-        ).unwrap();
-        paths.lock().unwrap().push((entity, Path { path: path, index: 0 }));
+        command_queue.push(move |world: &mut World| {
+            for (entity) in entities.iter() {
+                let transform = world.entity(*entity).get::<Transform>().unwrap();
+
+                let weights = world.get_resource::<TileWeights>().unwrap();
+                let mut rand = thread_rng();
+
+                let start = Pos(transform.translation.x as i32 / 32, transform.translation.y as i32 / 32);
+                let goal = Pos(rand.gen_range(-127..127), rand.gen_range(-127..127));
+
+                let path = pathfinding::prelude::astar(
+                    &start,
+                    |p| p.successors(weights),
+                    |p| p.distance(&goal) / 1,
+                    |p| *p == goal,
+                ).unwrap();
+
+                world.entity_mut(*entity).insert(Path { path: path.clone(), index: 0 });
+            }
+        });
+
+        command_queue
     });
+    let entity = commands.spawn_empty().id();
+    commands.entity(entity).insert(ComputeTransform(task));
+}
 
-    for (entity, path) in paths.lock().unwrap().iter() {
-        commands.entity(*entity).insert(Path { path: path.path.clone(), index: 0 });
+fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<(Entity, &mut ComputeTransform)>) {
+    for (entity, mut task) in &mut transform_tasks {
+        if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
+            // append the returned command queue to have it execute later
+            commands.append(&mut commands_queue);
+            commands.entity(entity).despawn();
+        }
     }
 }
 
@@ -159,6 +187,7 @@ impl Plugin for RandomMovementPlugin {
             .add_systems(OnExit(Loading), update_random_dir_without_tick)
             .add_systems(Update, wander.run_if(in_state(AppState::InGame)))
             .add_systems(Update, move_randomly.run_if(in_state(AppState::InGame)))
-            .add_systems(Update, follow_path.run_if(in_state(AppState::InGame)));
+            .add_systems(Update, follow_path.run_if(in_state(AppState::InGame)))
+            .add_systems(Update, handle_tasks);
     }
 }
