@@ -1,10 +1,12 @@
+use std::future::pending;
 use std::sync::Mutex;
 
 use bevy::app::App;
 use bevy::ecs::system::CommandQueue;
 use bevy::prelude::*;
 use bevy::tasks::{AsyncComputeTaskPool, block_on, Task};
-use bevy::tasks::futures_lite::future;
+use bevy::tasks::futures_lite::{future, FutureExt};
+use bevy::tasks::futures_lite::future::ready;
 use bevy::time::TimerMode::Repeating;
 //use bevy_ecs_tilemap::prelude::TileStorage;
 use bevy_enum_filter::prelude::*;
@@ -73,16 +75,14 @@ fn move_randomly(
 
     let entities = query.iter().collect::<Vec::<Entity>>();
 
-    let task = thread_pool.spawn(async move {
-        if entities.len() > 0 {
-            println!("Entities: {:?}", entities);
-        }
+    for (entity) in entities.iter() {
+        let entity = entity.clone();
+        let task = thread_pool.spawn(async move {
+            println!("Entity: {:?}", entity);
+            let mut command_queue = CommandQueue::default();
 
-        let mut command_queue = CommandQueue::default();
-
-        command_queue.push(move |world: &mut World| {
-            for (entity) in entities.iter() {
-                let transform = world.entity(*entity).get::<Transform>().unwrap();
+            command_queue.push(move |world: &mut World| {
+                let transform = world.entity(entity).get::<Transform>().unwrap();
 
                 let weights = world.get_resource::<TileWeights>().unwrap();
                 let mut rand = thread_rng();
@@ -97,23 +97,24 @@ fn move_randomly(
                     |p| *p == goal,
                 ).unwrap();
 
-                world.entity_mut(*entity).insert(Path { path: path.clone(), index: 0 });
-            }
+                world.entity_mut(entity).insert(Path { path: path.clone(), index: 0 }).remove::<ComputeTransform>();
+            });
+            command_queue
         });
 
-        command_queue
-    });
-    let entity = commands.spawn_empty().id();
-    commands.entity(entity).insert(ComputeTransform(task));
+        commands.entity(entity).insert(ComputeTransform(task));
+    }
 }
 
-fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<(Entity, &mut ComputeTransform)>) {
-    for (entity, mut task) in &mut transform_tasks {
-        if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
-            // append the returned command queue to have it execute later
-            commands.append(&mut commands_queue);
-            commands.entity(entity).despawn();
-        }
+fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<(&mut ComputeTransform)>) {
+    for (mut task) in &mut transform_tasks {
+        //let _ = task.0.or(pending(1));
+        //&task.0.detach();
+        let mut commands_queue = block_on(future::or(&mut task.0, ready(CommandQueue::default())));
+        //if let Some(mut commands_queue) = (future::poll_once(&mut task.0)) {
+        // append the returned command queue to have it execute later
+        commands.append(&mut commands_queue);
+        //commands.entity(entity).despawn();
     }
 }
 
