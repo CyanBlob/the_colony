@@ -6,7 +6,9 @@ use rand::{Rng, thread_rng};
 
 use crate::{AppState, CharacterFolder};
 use crate::name_plugin::NeedsName;
+use crate::pathing::Pos;
 use crate::tasks::*;
+use crate::wander_plugin::NeedsPath;
 
 #[derive(Component)]
 pub struct Character;
@@ -73,6 +75,9 @@ fn add_people(
                     index: character_index,
                 },
                 NeedsName,
+                NeedsPath {
+                   pos: Pos(0, 0) 
+                }
                 /*Text2dBundle {
                     transform: Default::default(),
                     text_anchor: Default::default(),

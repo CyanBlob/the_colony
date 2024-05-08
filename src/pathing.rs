@@ -13,7 +13,7 @@ impl Pos {
         (self.0.abs_diff(other.0) + self.1.abs_diff(other.1)) as u32
     }
 
-    pub fn successors(&self, tile_weights: &TileWeights) -> Vec<(Pos, u32)> {
+    pub fn successors(&self, tile_weights: &HashMap<Pos, i32>) -> Vec<(Pos, u32)> {
         let &Pos(x, y) = self;
 
         vec![
@@ -28,7 +28,7 @@ impl Pos {
         ]
             .into_iter()
             .map(|p| {
-                let weight = tile_weights.weights.get(&p).unwrap_or(&9999);
+                let weight = tile_weights.get(&p).unwrap_or(&9999);
                 (p, weight.to_owned() as u32)
             })
             .collect()

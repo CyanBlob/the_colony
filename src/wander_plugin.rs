@@ -1,5 +1,7 @@
 use std::future::pending;
 use std::sync::Mutex;
+use std::thread;
+use std::time::Duration;
 
 use bevy::app::App;
 use bevy::ecs::system::CommandQueue;
@@ -29,7 +31,7 @@ pub struct Wandering;
 
 #[derive(Component)]
 pub struct NeedsPath {
-    pos: Pos,
+    pub pos: Pos,
 }
 
 #[derive(Component)]
@@ -67,36 +69,38 @@ fn wander(
 fn move_randomly(
     mut commands: Commands,
     query: Query<
-        Entity,
-        (With<Transform>, With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>),
+        (Entity, &Transform),
+        (With<Transform>, With<Wandering>, With<Enum!(AllTasks::Wander)>, Without<Path>, With<NeedsPath>),
     >,
+    weights: Res<TileWeights>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
-    let entities = query.iter().collect::<Vec::<Entity>>();
+    let entities: Vec::<(Entity, Transform)> = query.iter().map(|(entity, transform)| { (entity, transform.clone()) }).collect();
 
-    for (entity) in entities.iter() {
+    for (entity, transform) in entities.iter() {
         let entity = entity.clone();
+        commands.entity(entity).remove::<NeedsPath>();
+        
+        let weights = weights.weights.clone();
+        let transform = transform.clone();
+
         let task = thread_pool.spawn(async move {
-            println!("Entity: {:?}", entity);
             let mut command_queue = CommandQueue::default();
 
+            let mut rand = thread_rng();
+
+            let start = Pos(transform.translation.x as i32 / 32, transform.translation.y as i32 / 32);
+            let goal = Pos(rand.gen_range(-127..127), rand.gen_range(-127..127));
+
+            let path = pathfinding::prelude::astar(
+                &start,
+                |p| p.successors(&weights),
+                |p| p.distance(&goal) / 1,
+                |p| *p == goal,
+            ).unwrap();
+
             command_queue.push(move |world: &mut World| {
-                let transform = world.entity(entity).get::<Transform>().unwrap();
-
-                let weights = world.get_resource::<TileWeights>().unwrap();
-                let mut rand = thread_rng();
-
-                let start = Pos(transform.translation.x as i32 / 32, transform.translation.y as i32 / 32);
-                let goal = Pos(rand.gen_range(-127..127), rand.gen_range(-127..127));
-
-                let path = pathfinding::prelude::astar(
-                    &start,
-                    |p| p.successors(weights),
-                    |p| p.distance(&goal) / 1,
-                    |p| *p == goal,
-                ).unwrap();
-
                 world.entity_mut(entity).insert(Path { path: path.clone(), index: 0 }).remove::<ComputeTransform>();
             });
             command_queue
@@ -108,13 +112,10 @@ fn move_randomly(
 
 fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<(&mut ComputeTransform)>) {
     for (mut task) in &mut transform_tasks {
-        //let _ = task.0.or(pending(1));
-        //&task.0.detach();
-        let mut commands_queue = block_on(future::or(&mut task.0, ready(CommandQueue::default())));
-        //if let Some(mut commands_queue) = (future::poll_once(&mut task.0)) {
-        // append the returned command queue to have it execute later
-        commands.append(&mut commands_queue);
-        //commands.entity(entity).despawn();
+        if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
+            // append the returned command queue to have it execute later
+            commands.append(&mut commands_queue);
+        }
     }
 }
 
@@ -140,7 +141,7 @@ fn follow_path(
             path.index += 1;
 
             if path.path.0.len() == path.index {
-                commands.lock().unwrap().entity(entity).remove::<Path>();
+                commands.lock().unwrap().entity(entity).remove::<Path>().insert(NeedsPath { pos: Pos(0, 0) });
                 return;
             }
             next_pos = Vec3::new(
