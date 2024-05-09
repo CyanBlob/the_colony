@@ -1,9 +1,9 @@
 
 use bevy::math::Vec3;
-use bevy::prelude::Component;
+use bevy::prelude::{Component, Reflect};
 use bevy::utils::HashMap;
 
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Component)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Component, Reflect)]
 pub struct Pos(pub i32, pub i32);
 
 impl Pos {
@@ -41,6 +41,7 @@ impl Pos {
         }
     }
 
+    #[allow(unused)]
     pub fn new(x: i32, y: i32) -> Self {
         Pos(x, y)
     }

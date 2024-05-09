@@ -48,6 +48,7 @@ enum AppState {
 struct TerrainFolder(Handle<LoadedFolder>);
 
 #[derive(Resource, Default)]
+#[allow(unused)]
 struct PlantFolder(Handle<LoadedFolder>);
 
 #[derive(Resource, Default)]
