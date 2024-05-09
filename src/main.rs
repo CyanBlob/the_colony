@@ -8,7 +8,6 @@ use bevy_fast_tilemap::FastTileMapPlugin;
 use bevy_framepace::{FramepaceSettings, Limiter};
 use bevy_pancam::{PanCam, PanCamPlugin};
 use iyes_perf_ui::{PerfUiCompleteBundle, PerfUiPlugin};
-use leafwing_input_manager::Actionlike;
 
 use crate::character_plugin::CharacterPlugin;
 use crate::debug_plugin::DebugPlugin;
@@ -140,7 +139,7 @@ fn main() {
             //ThirstPlugin,
             //WorldInspectorPlugin::new(),
         ))
-        .add_plugins((InputPlugin))
+        .add_plugins(InputPlugin)
         .add_plugins((DebugPlugin, bevy_framepace::FramepacePlugin, PerfUiPlugin, FastTileMapPlugin::default(), ))
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Loading), load_textures)

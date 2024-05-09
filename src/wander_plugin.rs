@@ -1,14 +1,10 @@
-use std::future::pending;
 use std::sync::Mutex;
-use std::thread;
-use std::time::Duration;
 
 use bevy::app::App;
 use bevy::ecs::system::CommandQueue;
 use bevy::prelude::*;
 use bevy::tasks::{AsyncComputeTaskPool, block_on, Task};
-use bevy::tasks::futures_lite::{future, FutureExt};
-use bevy::tasks::futures_lite::future::ready;
+use bevy::tasks::futures_lite::{future};
 use bevy::time::TimerMode::Repeating;
 //use bevy_ecs_tilemap::prelude::TileStorage;
 use bevy_enum_filter::prelude::*;
@@ -110,8 +106,8 @@ fn move_randomly(
     }
 }
 
-fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<(&mut ComputeTransform)>) {
-    for (mut task) in &mut transform_tasks {
+fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut ComputeTransform>) {
+    for mut task in &mut transform_tasks {
         if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
             // append the returned command queue to have it execute later
             commands.append(&mut commands_queue);

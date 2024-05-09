@@ -76,7 +76,7 @@ fn add_people(
                 },
                 NeedsName,
                 NeedsPath {
-                   pos: Pos(0, 0) 
+                   pos: Pos(0, 0)
                 }
                 /*Text2dBundle {
                     transform: Default::default(),

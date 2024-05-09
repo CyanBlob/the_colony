@@ -1,9 +1,7 @@
-use std::sync::MutexGuard;
 
 use bevy::math::Vec3;
 use bevy::prelude::Component;
 use bevy::utils::HashMap;
-use crate::world_gen_plugin::TileWeights;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Component)]
 pub struct Pos(pub i32, pub i32);

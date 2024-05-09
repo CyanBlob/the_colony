@@ -1,9 +1,6 @@
 use bevy::app::{App, Plugin, Startup};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_framepace::{FramepaceSettings, Limiter};
-use bevy_pancam::PanCam;
-use iyes_perf_ui::PerfUiCompleteBundle;
 use leafwing_input_manager::{Actionlike, InputManagerBundle};
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
